@@ -164,6 +164,9 @@ export default {
     mobile: () => {
       return `/settings/mobile-connections`;
     },
+    promptLibrary: () => {
+      return `/settings/prompt-library`;
+    },
     experimental: () => {
       return `/settings/beta-features`;
     },

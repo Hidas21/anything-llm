@@ -84,14 +84,35 @@ async function recentChatHistory({
 /**
  * Returns the base prompt for the chat. This method will also do variable
  * substitution on the prompt if there are any defined variables in the prompt.
+ * If the workspace has an active Prompt Library template, that template's content
+ * is used as the system prompt instead of the workspace's own prompt.
  * @param {Object|null} workspace - the workspace object
  * @param {Object|null} user - the user object
  * @returns {Promise<string>} - the base prompt
  */
 async function chatPrompt(workspace, user = null) {
   const { SystemSettings } = require("../../models/systemSettings");
-  const basePrompt =
+  const {
+    PromptLibraryTemplate,
+  } = require("../../models/promptLibraryTemplate");
+
+  let basePrompt =
     workspace?.openAiPrompt ?? SystemSettings.saneDefaultSystemPrompt;
+
+  // Check for an active Prompt Library template on this workspace.
+  // If found and enabled, its content overrides the workspace system prompt.
+  if (workspace?.activePromptLibraryTemplateId) {
+    const template = await PromptLibraryTemplate.get({
+      id: workspace.activePromptLibraryTemplateId,
+      enabled: true,
+    });
+    if (template) basePrompt = template.content;
+  } else {
+    // No explicit selection — use default template if one exists
+    const defaultTemplate = await PromptLibraryTemplate.getDefault();
+    if (defaultTemplate) basePrompt = defaultTemplate.content;
+  }
+
   return await SystemPromptVariables.expandSystemPromptVariables(
     basePrompt,
     user?.id,

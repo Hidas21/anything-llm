@@ -55,6 +55,7 @@ const Workspace = {
     "agentModel",
     "queryRefusalResponse",
     "vectorSearchMode",
+    "activePromptLibraryTemplateId",
   ],
 
   validations: {

@@ -256,6 +256,15 @@ const router = createBrowserRouter([
         },
       },
       {
+        path: "/settings/prompt-library",
+        lazy: async () => {
+          const { default: PromptLibraryAdmin } = await import(
+            "@/pages/Admin/PromptLibrary"
+          );
+          return { element: <AdminRoute Component={PromptLibraryAdmin} /> };
+        },
+      },
+      {
         path: "/settings/system-prompt-variables",
         lazy: async () => {
           const { default: SystemPromptVariables } = await import(

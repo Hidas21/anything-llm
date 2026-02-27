@@ -291,6 +291,12 @@ const SidebarOptions = ({ user = null, t }) => (
               flex: true,
               roles: ["admin"],
             },
+            {
+              btnText: "Prompt Library",
+              href: paths.settings.promptLibrary(),
+              flex: true,
+              roles: ["admin"],
+            },
           ]}
         />
         <Option
