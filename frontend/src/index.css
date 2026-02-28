@@ -1137,3 +1137,11 @@ does not extend the close button beyond the viewport. */
 .animate-slide-in {
   animation: slideInLeft 0.2s ease-out forwards;
 }
+
+@keyframes plv2SlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.animate-plv2-slide-up {
+  animation: plv2SlideUp 0.22s ease-out forwards;
+}

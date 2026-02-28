@@ -167,6 +167,9 @@ export default {
     promptLibrary: () => {
       return `/settings/prompt-library`;
     },
+    promptLibraryV2: () => {
+      return `/settings/prompt-library-v2`;
+    },
     experimental: () => {
       return `/settings/beta-features`;
     },

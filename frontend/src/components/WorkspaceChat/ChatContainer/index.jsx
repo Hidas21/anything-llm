@@ -29,6 +29,8 @@ import { useTranslation } from "react-i18next";
 import paths from "@/utils/paths";
 import QuickActions from "@/components/lib/QuickActions";
 import SuggestedMessages from "@/components/lib/SuggestedMessages";
+import PromptLibraryV2Api from "@/models/promptLibraryV2";
+import InlineForm from "@/components/PromptLibraryV2/InlineForm";
 
 export default function ChatContainer({ workspace, knownHistory = [] }) {
   const navigate = useNavigate();
@@ -41,6 +43,9 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const { files, parseAttachments } = useContext(DndUploaderContext);
   const { chatHistoryRef } = useChatContainerQuickScroll();
   const pendingMessageChecked = useRef(false);
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
+  const [promptLibraries, setPromptLibraries] = useState([]);
+  const [librariesLoading, setLibrariesLoading] = useState(false);
 
   const { listening, resetTranscript } = useSpeechRecognition({
     clearTranscriptOnListen: true,
@@ -201,6 +206,26 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     }
   }, [workspace?.slug]);
 
+  // Prompt Library V2 — open inline form immediately, load libraries in background
+  useEffect(() => {
+    function handlePlV2Open(e) {
+      const slug = e?.detail?.workspaceSlug ?? workspace?.slug;
+      // Open the panel immediately so the user gets instant feedback
+      setShowPromptLibrary(true);
+      setLibrariesLoading(true);
+      if (!slug) {
+        setLibrariesLoading(false);
+        return;
+      }
+      PromptLibraryV2Api.forWorkspace(slug)
+        .then((libs) => setPromptLibraries(Array.isArray(libs) ? libs : []))
+        .catch(() => setPromptLibraries([]))
+        .finally(() => setLibrariesLoading(false));
+    }
+    window.addEventListener("prompt-library-v2:open", handlePlV2Open);
+    return () => window.removeEventListener("prompt-library-v2:open", handlePlV2Open);
+  }, [workspace?.slug]);
+
   useEffect(() => {
     async function fetchReply() {
       const promptMessage =
@@ -324,6 +349,17 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const isEmpty =
     chatHistory.length === 0 && !sessionStorage.getItem(PENDING_HOME_MESSAGE);
 
+  // Shared InlineForm props
+  const inlineFormProps = {
+    libraries: promptLibraries,
+    loading: librariesLoading,
+    onClose: () => setShowPromptLibrary(false),
+    onGenerate: (prompt) => {
+      setShowPromptLibrary(false);
+      sendCommand({ text: prompt, autoSubmit: false });
+    },
+  };
+
   if (isEmpty) {
     return (
       <div
@@ -331,38 +367,43 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         className="transition-all duration-500 relative md:ml-[2px] md:mr-[16px] md:my-[16px] md:rounded-[16px] bg-theme-bg-secondary w-full h-full overflow-hidden"
       >
         {isMobile && <SidebarMobileHeader />}
-        <DnDFileUploaderWrapper>
-          <div className="flex flex-col h-full w-full items-center justify-center">
-            <div className="flex flex-col items-center w-full max-w-[750px]">
-              <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
-                {t("main-page.greeting")}
-              </h1>
-              <PromptInput
-                submit={handleSubmit}
-                isStreaming={loadingResponse}
+        {showPromptLibrary ? (
+          <InlineForm {...inlineFormProps} />
+        ) : (
+          <DnDFileUploaderWrapper>
+            <div className="flex flex-col h-full w-full items-center justify-center">
+              <div className="flex flex-col items-center w-full max-w-[750px]">
+                <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
+                  {t("main-page.greeting")}
+                </h1>
+                <PromptInput
+                  submit={handleSubmit}
+                  isStreaming={loadingResponse}
+                  sendCommand={sendCommand}
+                  attachments={files}
+                  centered={true}
+                  workspaceSlug={workspace?.slug}
+                />
+                <QuickActions
+                  hasAvailableWorkspace={!!workspace}
+                  onCreateAgent={() => navigate(paths.settings.agentSkills())}
+                  onEditWorkspace={() =>
+                    navigate(
+                      paths.workspace.settings.generalAppearance(workspace.slug)
+                    )
+                  }
+                  onUploadDocument={() =>
+                    document.getElementById("dnd-chat-file-uploader")?.click()
+                  }
+                />
+              </div>
+              <SuggestedMessages
+                suggestedMessages={workspace?.suggestedMessages}
                 sendCommand={sendCommand}
-                attachments={files}
-                centered={true}
-              />
-              <QuickActions
-                hasAvailableWorkspace={!!workspace}
-                onCreateAgent={() => navigate(paths.settings.agentSkills())}
-                onEditWorkspace={() =>
-                  navigate(
-                    paths.workspace.settings.generalAppearance(workspace.slug)
-                  )
-                }
-                onUploadDocument={() =>
-                  document.getElementById("dnd-chat-file-uploader")?.click()
-                }
               />
             </div>
-            <SuggestedMessages
-              suggestedMessages={workspace?.suggestedMessages}
-              sendCommand={sendCommand}
-            />
-          </div>
-        </DnDFileUploaderWrapper>
+          </DnDFileUploaderWrapper>
+        )}
         <ChatTooltips />
       </div>
     );
@@ -374,29 +415,38 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
       className="transition-all duration-500 relative md:ml-[2px] md:mr-[16px] md:my-[16px] md:rounded-[16px] bg-theme-bg-secondary w-full h-full overflow-y-scroll no-scroll z-[2]"
     >
       {isMobile && <SidebarMobileHeader />}
-      <DnDFileUploaderWrapper>
-        <div className="flex flex-col h-full w-full">
-          <div className="contents">
-            <MetricsProvider>
-              <ChatHistory
-                ref={chatHistoryRef}
-                history={chatHistory}
-                workspace={workspace}
-                sendCommand={sendCommand}
-                updateHistory={setChatHistory}
-                regenerateAssistantMessage={regenerateAssistantMessage}
-              />
-            </MetricsProvider>
-            <PromptInput
-              submit={handleSubmit}
-              isStreaming={loadingResponse}
-              sendCommand={sendCommand}
-              attachments={files}
-              centered={false}
-            />
-          </div>
+      {showPromptLibrary ? (
+        // Render InlineForm as a direct child (not absolute overlay) so it is
+        // always visible regardless of scroll position.
+        <div className="flex flex-col h-full w-full overflow-hidden">
+          <InlineForm {...inlineFormProps} />
         </div>
-      </DnDFileUploaderWrapper>
+      ) : (
+        <DnDFileUploaderWrapper>
+          <div className="flex flex-col h-full w-full">
+            <div className="contents">
+              <MetricsProvider>
+                <ChatHistory
+                  ref={chatHistoryRef}
+                  history={chatHistory}
+                  workspace={workspace}
+                  sendCommand={sendCommand}
+                  updateHistory={setChatHistory}
+                  regenerateAssistantMessage={regenerateAssistantMessage}
+                />
+              </MetricsProvider>
+              <PromptInput
+                submit={handleSubmit}
+                isStreaming={loadingResponse}
+                sendCommand={sendCommand}
+                attachments={files}
+                centered={false}
+                workspaceSlug={workspace?.slug}
+              />
+            </div>
+          </div>
+        </DnDFileUploaderWrapper>
+      )}
       <ChatTooltips />
     </div>
   );

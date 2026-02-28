@@ -31,6 +31,7 @@ const { mcpServersEndpoints } = require("./endpoints/mcpServers");
 const { mobileEndpoints } = require("./endpoints/mobile");
 const { webPushEndpoints } = require("./endpoints/webPush");
 const { promptLibraryEndpoints } = require("./endpoints/promptLibrary");
+const { promptLibraryV2Endpoints } = require("./endpoints/promptLibraryV2");
 const { httpLogger } = require("./middleware/httpLogger");
 const app = express();
 const apiRouter = express.Router();
@@ -83,6 +84,7 @@ mcpServersEndpoints(apiRouter);
 mobileEndpoints(apiRouter);
 webPushEndpoints(apiRouter);
 promptLibraryEndpoints(apiRouter);
+promptLibraryV2Endpoints(apiRouter);
 // Externally facing embedder endpoints
 embeddedEndpoints(apiRouter);
 

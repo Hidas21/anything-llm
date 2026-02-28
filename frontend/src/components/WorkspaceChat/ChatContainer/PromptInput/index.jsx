@@ -25,6 +25,7 @@ import useTextSize from "@/hooks/useTextSize";
 import { useTranslation } from "react-i18next";
 import Appearance from "@/models/appearance";
 import usePromptInputStorage from "@/hooks/usePromptInputStorage";
+import PromptLibraryV2Button from "@/components/PromptLibraryV2/PromptLibraryV2Button";
 
 export const PROMPT_INPUT_ID = "primary-prompt-input";
 export const PROMPT_INPUT_EVENT = "set_prompt_input";
@@ -331,6 +332,7 @@ export default function PromptInput({
                 />
                 <TextSizeButton />
                 <LLMSelectorAction workspaceSlug={workspaceSlug} />
+                <PromptLibraryV2Button workspaceSlug={workspaceSlug} />
               </div>
               <div className="flex gap-x-2 items-center h-5">
                 <SpeechToText sendCommand={sendCommand} />

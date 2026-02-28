@@ -376,6 +376,51 @@ model prompt_library_templates {
   updatedAt     DateTime @default(now())
 }
 
+// ─── Prompt Library V2 ───────────────────────────────────────────────────────
+// Isolated feature: do NOT mix with prompt_library_templates (v1)
+
+model prompt_libraries {
+  id          Int                              @id @default(autoincrement())
+  uuid        String                           @unique @default(uuid())
+  name        String
+  description String?
+  template    String // prompt text with {{variable}} placeholders
+  enabled     Boolean                          @default(true)
+  createdAt   DateTime                         @default(now())
+  updatedAt   DateTime                         @default(now())
+  questions   prompt_library_questions[]
+  workspaces  prompt_library_workspace_assignments[]
+}
+
+model prompt_library_questions {
+  id           Int              @id @default(autoincrement())
+  libraryId    Int
+  variable     String // matches {{variable}} in template
+  label        String
+  type         String           @default("text") // text|textarea|number|select|multiselect|checkbox
+  placeholder  String?
+  required     Boolean          @default(true)
+  options      String?          // JSON array of strings for select/multiselect
+  defaultValue String?
+  orderIndex   Int              @default(0)
+  showIf       String?          // JSON: { variable, equals } for conditional display
+  createdAt    DateTime         @default(now())
+  library      prompt_libraries @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+
+  @@index([libraryId])
+}
+
+model prompt_library_workspace_assignments {
+  id          Int              @id @default(autoincrement())
+  libraryId   Int
+  workspaceId Int
+  createdAt   DateTime         @default(now())
+  library     prompt_libraries @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+
+  @@unique([libraryId, workspaceId])
+  @@index([workspaceId])
+}
+
 // Schema specific to mobile app <> Desktop app connection
 model desktop_mobile_devices {
   id         Int      @id @default(autoincrement())
