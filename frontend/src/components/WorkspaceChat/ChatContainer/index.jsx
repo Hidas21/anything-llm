@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext, useRef, useCallback } from "react";
 import ChatHistory from "./ChatHistory";
 import { CLEAR_ATTACHMENTS_EVENT, DndUploaderContext } from "./DnDWrapper";
 import PromptInput, {
@@ -46,6 +46,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const [showPromptLibrary, setShowPromptLibrary] = useState(false);
   const [promptLibraries, setPromptLibraries] = useState([]);
   const [librariesLoading, setLibrariesLoading] = useState(false);
+  const pendingPromptRef = useRef(null);
 
   const { listening, resetTranscript } = useSpeechRecognition({
     clearTranscriptOnListen: true,
@@ -132,6 +133,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     history = [],
     attachments = [],
     writeMode = "replace",
+    silent = false,
   } = {}) => {
     // If we are not auto-submitting, we can just emit the text to the prompt input.
     if (!autoSubmit) {
@@ -168,11 +170,8 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     } else {
       prevChatHistory = [
         ...chatHistory,
-        {
-          content: text,
-          role: "user",
-          attachments,
-        },
+        // silent=true: skip the user bubble, only show the assistant response
+        ...(silent ? [] : [{ content: text, role: "user", attachments }]),
         {
           content: "",
           role: "assistant",
@@ -205,6 +204,15 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
       }, 100);
     }
   }, [workspace?.slug]);
+
+  // Prompt Library V2 — after the form closes, flush the pending prompt into the input
+  useEffect(() => {
+    if (!showPromptLibrary && pendingPromptRef.current) {
+      const prompt = pendingPromptRef.current;
+      pendingPromptRef.current = null;
+      sendCommand({ text: prompt, autoSubmit: false });
+    }
+  }, [showPromptLibrary]);
 
   // Prompt Library V2 — open inline form immediately, load libraries in background
   useEffect(() => {
@@ -356,7 +364,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     onClose: () => setShowPromptLibrary(false),
     onGenerate: (prompt) => {
       setShowPromptLibrary(false);
-      sendCommand({ text: prompt, autoSubmit: false });
+      sendCommand({ text: prompt, autoSubmit: true, silent: true });
     },
   };
 

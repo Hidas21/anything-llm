@@ -9,7 +9,9 @@
  */
 export function injectVariables(template, answers = {}) {
   return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => {
-    return answers[key] !== undefined && answers[key] !== "" ? answers[key] : _match;
+    const val = answers[key];
+    // Replace with value if set, otherwise remove the placeholder entirely
+    return val !== undefined && val !== null && String(val).trim() !== "" ? val : "";
   });
 }
 
