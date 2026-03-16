@@ -32,6 +32,7 @@ const { mobileEndpoints } = require("./endpoints/mobile");
 const { webPushEndpoints } = require("./endpoints/webPush");
 const { promptLibraryEndpoints } = require("./endpoints/promptLibrary");
 const { promptLibraryV2Endpoints } = require("./endpoints/promptLibraryV2");
+const { aiConsentEndpoints } = require("./endpoints/aiConsent");
 const { httpLogger } = require("./middleware/httpLogger");
 const app = express();
 const apiRouter = express.Router();
@@ -85,6 +86,7 @@ mobileEndpoints(apiRouter);
 webPushEndpoints(apiRouter);
 promptLibraryEndpoints(apiRouter);
 promptLibraryV2Endpoints(apiRouter);
+aiConsentEndpoints(apiRouter); // AI Beleegyezés modul
 // Externally facing embedder endpoints
 embeddedEndpoints(apiRouter);
 

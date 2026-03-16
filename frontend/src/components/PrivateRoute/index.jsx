@@ -8,6 +8,9 @@ import { userFromStorage } from "@/utils/request";
 import System from "@/models/system";
 import UserMenu from "../UserMenu";
 import { KeyboardShortcutWrapper } from "@/utils/keyboardShortcuts";
+// AI Beleegyezés modul – elkülönített import
+import AiConsentModal from "@/components/AiConsentModal";
+import AiConsent from "@/models/aiConsent";
 
 // Used only for Multi-user mode only as we permission specific pages based on auth role.
 // When in single user mode we just bypass any authchecks.
@@ -74,15 +77,48 @@ function useIsAuthenticated() {
   return { isAuthd, shouldRedirectToOnboarding, multiUserMode };
 }
 
+/**
+ * AI Beleegyezés hook – csak multi-user módban ellenőrzi az elfogadást.
+ * Egyszemélyes módban mindig elfogadottnak tekinti (nincs mentendő userId).
+ */
+function useAiConsentCheck(isAuthd, multiUserMode) {
+  const [consentAccepted, setConsentAccepted] = useState(null);
+
+  useEffect(() => {
+    if (isAuthd === null) return; // még töltünk
+
+    if (!isAuthd || !multiUserMode) {
+      // Nem hitelesített, vagy egyszemélyes mód – nem kell ellenőrizni
+      setConsentAccepted(true);
+      return;
+    }
+
+    AiConsent.checkStatus().then(({ accepted }) => {
+      setConsentAccepted(accepted);
+    });
+  }, [isAuthd, multiUserMode]);
+
+  return { consentAccepted, setConsentAccepted };
+}
+
 // Allows only admin to access the route and if in single user mode,
 // allows all users to access the route
 export function AdminRoute({ Component, hideUserMenu = false }) {
   const { isAuthd, shouldRedirectToOnboarding, multiUserMode } =
     useIsAuthenticated();
-  if (isAuthd === null) return <FullScreenLoader />;
+  const { consentAccepted, setConsentAccepted } = useAiConsentCheck(
+    isAuthd,
+    multiUserMode
+  );
+
+  if (isAuthd === null || consentAccepted === null) return <FullScreenLoader />;
 
   if (shouldRedirectToOnboarding) {
     return <Navigate to={paths.onboarding.home()} />;
+  }
+
+  if (isAuthd && consentAccepted === false) {
+    return <AiConsentModal onAccepted={() => setConsentAccepted(true)} />;
   }
 
   const user = userFromStorage();
@@ -108,10 +144,19 @@ export function AdminRoute({ Component, hideUserMenu = false }) {
 export function ManagerRoute({ Component }) {
   const { isAuthd, shouldRedirectToOnboarding, multiUserMode } =
     useIsAuthenticated();
-  if (isAuthd === null) return <FullScreenLoader />;
+  const { consentAccepted, setConsentAccepted } = useAiConsentCheck(
+    isAuthd,
+    multiUserMode
+  );
+
+  if (isAuthd === null || consentAccepted === null) return <FullScreenLoader />;
 
   if (shouldRedirectToOnboarding) {
     return <Navigate to={paths.onboarding.home()} />;
+  }
+
+  if (isAuthd && consentAccepted === false) {
+    return <AiConsentModal onAccepted={() => setConsentAccepted(true)} />;
   }
 
   const user = userFromStorage();
@@ -127,20 +172,30 @@ export function ManagerRoute({ Component }) {
 }
 
 export default function PrivateRoute({ Component }) {
-  const { isAuthd, shouldRedirectToOnboarding } = useIsAuthenticated();
-  if (isAuthd === null) return <FullScreenLoader />;
+  const { isAuthd, shouldRedirectToOnboarding, multiUserMode } =
+    useIsAuthenticated();
+  const { consentAccepted, setConsentAccepted } = useAiConsentCheck(
+    isAuthd,
+    multiUserMode
+  );
+
+  if (isAuthd === null || consentAccepted === null) return <FullScreenLoader />;
 
   if (shouldRedirectToOnboarding) {
     return <Navigate to="/onboarding" />;
   }
 
-  return isAuthd ? (
+  if (!isAuthd) return <Navigate to={paths.login(true)} />;
+
+  if (consentAccepted === false) {
+    return <AiConsentModal onAccepted={() => setConsentAccepted(true)} />;
+  }
+
+  return (
     <KeyboardShortcutWrapper>
       <UserMenu>
         <Component />
       </UserMenu>
     </KeyboardShortcutWrapper>
-  ) : (
-    <Navigate to={paths.login(true)} />
   );
 }
