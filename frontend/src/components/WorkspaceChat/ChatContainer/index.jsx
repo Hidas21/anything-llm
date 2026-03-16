@@ -451,7 +451,11 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
               </div>
               <SuggestedMessages
                 suggestedMessages={workspace?.suggestedMessages}
-        <ChatTooltips />
+              />
+              <ChatTooltips />
+            </div>
+          </DnDFileUploaderWrapper>
+        )}
       </div>
     );
   }

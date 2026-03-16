@@ -58,7 +58,8 @@ export function AuthProvider(props) {
         localStorage.removeItem(AUTH_TIMESTAMP);
         localStorage.removeItem(USER_PROMPT_INPUT_MAP);
         setStore({ user: null, authToken: null });
-        navigate("/login");
+        const authBridgeUrl = import.meta.env.VITE_AUTH_BRIDGE_URL || "http://localhost:8000";
+        window.location.replace(`${authBridgeUrl}/login`);
         return;
       }
 

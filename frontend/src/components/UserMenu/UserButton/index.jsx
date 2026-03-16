@@ -99,7 +99,8 @@ export default function UserButton() {
                 window.localStorage.removeItem(AUTH_TIMESTAMP);
                 window.localStorage.removeItem(LAST_VISITED_WORKSPACE);
                 window.localStorage.removeItem(USER_PROMPT_INPUT_MAP);
-                window.location.replace(paths.home());
+                const authBridgeUrl = import.meta.env.VITE_AUTH_BRIDGE_URL || "http://localhost:8000";
+                window.location.replace(`${authBridgeUrl}/login`);
               }}
               type="button"
               className="text-white hover:bg-theme-action-menu-item-hover w-full text-left px-4 py-1.5 rounded-md"
