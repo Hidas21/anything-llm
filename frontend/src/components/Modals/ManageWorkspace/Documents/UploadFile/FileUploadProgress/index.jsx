@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo } from "react";
 import truncate from "truncate";
-import { CheckCircle, XCircle } from "@phosphor-icons/react";
+import { CheckCircle, XCircle, CopySimple } from "@phosphor-icons/react";
 import Workspace from "../../../../../../models/workspace";
 import { humanFileSize, milliToHms } from "../../../../../../utils/numbers";
 import PreLoader from "../../../../../Preloader";
@@ -20,6 +20,8 @@ function FileUploadProgressComponent({
   const [timerMs, setTimerMs] = useState(10);
   const [status, setStatus] = useState("pending");
   const [error, setError] = useState("");
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   const fadeOut = (cb) => {
@@ -50,8 +52,14 @@ function FileUploadProgressComponent({
       if (!response.ok) {
         setStatus("failed");
         clearInterval(timer);
-        onUploadError(data.error);
-        setError(data.error);
+        if (data?.duplicate) {
+          setIsDuplicate(true);
+          setDuplicateInfo(data.original ?? null);
+          onUploadError("Duplicate file");
+        } else {
+          onUploadError(data?.error ?? "Upload failed");
+          setError(data?.error ?? "Upload failed");
+        }
       } else {
         setLoading(false);
         setLoadingMessage("");
@@ -88,6 +96,26 @@ function FileUploadProgressComponent({
           <p className="text-red-100 light:text-red-600 text-xs font-medium">
             {reason || "this file failed to upload"}
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "failed" && isDuplicate) {
+    return (
+      <div
+        className={`${
+          isFadingOut ? "file-upload-fadeout" : "file-upload"
+        } h-14 px-2 py-2 flex items-center gap-x-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10`}
+      >
+        <div className="w-6 h-6 flex-shrink-0">
+          <CopySimple className="w-6 h-6 text-yellow-400" weight="duotone" />
+        </div>
+        <div className="flex flex-col">
+          <p className="text-yellow-200 text-xs font-semibold truncate">
+            {truncate(file.name, 30)}
+          </p>
+          <p className="text-yellow-300/80 text-xs font-medium">Already uploaded</p>
         </div>
       </div>
     );

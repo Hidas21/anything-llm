@@ -13,6 +13,7 @@ const { DocumentVectors } = require("../models/vectors");
 const { WorkspaceChats } = require("../models/workspaceChats");
 const { getVectorDbClass } = require("../utils/helpers");
 const { handleFileUpload, handlePfpUpload } = require("../utils/files/multer");
+const { duplicateFileGuard } = require("../utils/duplicateFileGuard");
 const { validatedRequest } = require("../utils/middleware/validatedRequest");
 const { Telemetry } = require("../models/telemetry");
 const {
@@ -115,6 +116,7 @@ function workspaceEndpoints(app) {
       validatedRequest,
       flexUserRoleValid([ROLES.admin, ROLES.manager]),
       handleFileUpload,
+      duplicateFileGuard,
     ],
     async function (request, response) {
       try {
@@ -875,6 +877,7 @@ function workspaceEndpoints(app) {
       validatedRequest,
       flexUserRoleValid([ROLES.admin, ROLES.manager]),
       handleFileUpload,
+      duplicateFileGuard,
     ],
     async function (request, response) {
       try {
