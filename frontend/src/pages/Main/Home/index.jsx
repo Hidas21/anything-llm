@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { isMobile } from "react-device-detect";
 import { SidebarMobileHeader } from "@/components/Sidebar";
@@ -23,6 +23,8 @@ import { safeJsonParse } from "@/utils/request";
 import QuickActions from "@/components/lib/QuickActions";
 import SuggestedMessages from "@/components/lib/SuggestedMessages";
 import useUser from "@/hooks/useUser";
+import PromptLibraryV2Api from "@/models/promptLibraryV2";
+import InlineForm from "@/components/PromptLibraryV2/InlineForm";
 
 async function getTargetWorkspace() {
   const lastVisited = safeJsonParse(
@@ -178,6 +180,9 @@ function HomeContent({ workspace, setWorkspace, threadSlug, setThreadSlug }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { files, parseAttachments } = useContext(DndUploaderContext);
+  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
+  const [promptLibraries, setPromptLibraries] = useState([]);
+  const [librariesLoading, setLibrariesLoading] = useState(false);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -251,6 +256,24 @@ function HomeContent({ workspace, setWorkspace, threadSlug, setThreadSlug }) {
     );
   }
 
+  const openPromptLibrary = useCallback(
+    (workspaceSlug = null) => {
+      const slug = workspaceSlug ?? workspace?.slug;
+      setShowPromptLibrary(true);
+      setLibrariesLoading(true);
+      if (!slug) {
+        setPromptLibraries([]);
+        setLibrariesLoading(false);
+        return;
+      }
+      PromptLibraryV2Api.forWorkspace(slug)
+        .then((libs) => setPromptLibraries(Array.isArray(libs) ? libs : []))
+        .catch(() => setPromptLibraries([]))
+        .finally(() => setLibrariesLoading(false));
+    },
+    [workspace?.slug]
+  );
+
   async function handleEditWorkspace() {
     let targetWorkspace = workspace;
 
@@ -271,36 +294,49 @@ function HomeContent({ workspace, setWorkspace, threadSlug, setThreadSlug }) {
       className="transition-all duration-500 relative md:ml-[2px] md:mr-[16px] md:my-[16px] md:rounded-[16px] bg-theme-bg-secondary w-full h-full overflow-hidden"
     >
       {isMobile && <SidebarMobileHeader />}
-      <DnDFileUploaderWrapper>
-        <div className="flex flex-col h-full w-full items-center justify-center">
-          <div className="flex flex-col items-center w-full max-w-[750px]">
-            <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
-              {t("main-page.greeting")}
-            </h1>
-            <PromptInput
-              submit={handleSubmit}
-              isStreaming={loading}
+      {showPromptLibrary ? (
+        <InlineForm
+          libraries={promptLibraries}
+          loading={librariesLoading}
+          onClose={() => setShowPromptLibrary(false)}
+          onGenerate={(prompt) => {
+            setShowPromptLibrary(false);
+            submitMessage(prompt.trim());
+          }}
+        />
+      ) : (
+        <DnDFileUploaderWrapper>
+          <div className="flex flex-col h-full w-full items-center justify-center">
+            <div className="flex flex-col items-center w-full max-w-[750px]">
+              <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
+                {t("main-page.greeting")}
+              </h1>
+              <PromptInput
+                submit={handleSubmit}
+                isStreaming={loading}
+                sendCommand={sendCommand}
+                attachments={files}
+                centered={true}
+                workspaceSlug={workspace?.slug}
+                threadSlug={threadSlug}
+                onOpenPromptLibrary={openPromptLibrary}
+              />
+              <QuickActions
+                hasAvailableWorkspace={!!workspace}
+                onCreateAgent={() => navigate(paths.settings.agentSkills())}
+                onEditWorkspace={handleEditWorkspace}
+                onUploadDocument={() =>
+                  document.getElementById("dnd-chat-file-uploader")?.click()
+                }
+              />
+            </div>
+            <SuggestedMessages
+              suggestedMessages={workspace?.suggestedMessages}
               sendCommand={sendCommand}
-              attachments={files}
-              centered={true}
-              workspaceSlug={workspace?.slug}
-              threadSlug={threadSlug}
-            />
-            <QuickActions
-              hasAvailableWorkspace={!!workspace}
-              onCreateAgent={() => navigate(paths.settings.agentSkills())}
-              onEditWorkspace={handleEditWorkspace}
-              onUploadDocument={() =>
-                document.getElementById("dnd-chat-file-uploader")?.click()
-              }
             />
           </div>
-          <SuggestedMessages
-            suggestedMessages={workspace?.suggestedMessages}
-            sendCommand={sendCommand}
-          />
-        </div>
-      </DnDFileUploaderWrapper>
+        </DnDFileUploaderWrapper>
+      )}
     </div>
   );
 }

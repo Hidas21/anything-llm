@@ -8,8 +8,19 @@ import PromptLibraryV2Api from "@/models/promptLibraryV2";
  * Dispatches `prompt-library-v2:open` so ChatContainer renders the form
  * in the chat area — no tight coupling, no form-submit risk.
  */
-export default function PromptLibraryV2Button({ workspaceSlug }) {
+export default function PromptLibraryV2Button({ workspaceSlug, onOpen = null }) {
   const [hasLibraries, setHasLibraries] = useState(false);
+
+  function handleOpen() {
+    if (typeof onOpen === "function") {
+      onOpen(workspaceSlug);
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("prompt-library-v2:open", { detail: { workspaceSlug } })
+    );
+  }
 
   useEffect(() => {
     if (!workspaceSlug) return;
@@ -24,11 +35,7 @@ export default function PromptLibraryV2Button({ workspaceSlug }) {
     <>
       <button
         type="button"
-        onClick={() =>
-          window.dispatchEvent(
-            new CustomEvent("prompt-library-v2:open", { detail: { workspaceSlug } })
-          )
-        }
+        onClick={handleOpen}
         data-tooltip-id="plv2-btn-tooltip"
         data-tooltip-content="Prompt Library"
         aria-label="Open Prompt Library"

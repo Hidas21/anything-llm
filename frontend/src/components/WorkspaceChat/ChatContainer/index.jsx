@@ -214,14 +214,13 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     }
   }, [showPromptLibrary]);
 
-  // Prompt Library V2 — open inline form immediately, load libraries in background
-  useEffect(() => {
-    function handlePlV2Open(e) {
-      const slug = e?.detail?.workspaceSlug ?? workspace?.slug;
-      // Open the panel immediately so the user gets instant feedback
+  const openPromptLibrary = useCallback(
+    (workspaceSlug = null) => {
+      const slug = workspaceSlug ?? workspace?.slug;
       setShowPromptLibrary(true);
       setLibrariesLoading(true);
       if (!slug) {
+        setPromptLibraries([]);
         setLibrariesLoading(false);
         return;
       }
@@ -229,10 +228,18 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         .then((libs) => setPromptLibraries(Array.isArray(libs) ? libs : []))
         .catch(() => setPromptLibraries([]))
         .finally(() => setLibrariesLoading(false));
+    },
+    [workspace?.slug]
+  );
+
+  // Keep the custom event as a fallback for any older mount points.
+  useEffect(() => {
+    function handlePlV2Open(e) {
+      openPromptLibrary(e?.detail?.workspaceSlug ?? null);
     }
     window.addEventListener("prompt-library-v2:open", handlePlV2Open);
     return () => window.removeEventListener("prompt-library-v2:open", handlePlV2Open);
-  }, [workspace?.slug]);
+  }, [openPromptLibrary]);
 
   useEffect(() => {
     async function fetchReply() {
@@ -391,6 +398,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
                   attachments={files}
                   centered={true}
                   workspaceSlug={workspace?.slug}
+                  onOpenPromptLibrary={openPromptLibrary}
                 />
                 <QuickActions
                   hasAvailableWorkspace={!!workspace}
@@ -450,6 +458,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
                 attachments={files}
                 centered={false}
                 workspaceSlug={workspace?.slug}
+                onOpenPromptLibrary={openPromptLibrary}
               />
             </div>
           </div>

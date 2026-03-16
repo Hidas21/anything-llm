@@ -43,10 +43,27 @@ const PromptLibraryV2 = {
    */
   async get(clause = {}) {
     try {
-      const libs = await prisma.$queryRawUnsafe(
-        "SELECT * FROM prompt_libraries WHERE id = ? LIMIT 1",
-        Number(clause.id)
-      );
+      let libs = [];
+
+      if (clause.id !== undefined) {
+        libs = await prisma.$queryRawUnsafe(
+          "SELECT * FROM prompt_libraries WHERE id = ? LIMIT 1",
+          Number(clause.id)
+        );
+      } else if (clause.name !== undefined) {
+        libs = await prisma.$queryRawUnsafe(
+          "SELECT * FROM prompt_libraries WHERE name = ? LIMIT 1",
+          String(clause.name)
+        );
+      } else if (clause.uuid !== undefined) {
+        libs = await prisma.$queryRawUnsafe(
+          "SELECT * FROM prompt_libraries WHERE uuid = ? LIMIT 1",
+          String(clause.uuid)
+        );
+      } else {
+        return null;
+      }
+
       if (!libs || libs.length === 0) return null;
       const lib = libs[0];
       lib.questions = await _getQuestions(lib.id);

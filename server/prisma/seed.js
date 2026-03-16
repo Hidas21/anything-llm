@@ -1,5 +1,7 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../utils/prisma");
+const {
+  seedHepaPromptLibrariesV2,
+} = require("../utils/promptLibraryV2/hepaLibraries");
 
 async function main() {
   const settings = [
@@ -19,6 +21,8 @@ async function main() {
       });
     }
   }
+
+  await seedHepaPromptLibrariesV2();
 }
 
 main()

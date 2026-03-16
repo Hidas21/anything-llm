@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   BookBookmark,
   ArrowLeft,
@@ -8,21 +8,21 @@ import {
   WarningCircle,
   CaretDown,
 } from "@phosphor-icons/react";
-import { injectVariables, validateAnswers, isQuestionVisible, parseOptions } from "./utils";
+import { injectVariables, isQuestionVisible, parseOptions } from "./utils";
 
 // ─── Field components (inline, with error support) ───────────────────────────
 
 function FieldWrapper({ question, error, children }) {
   return (
     <div className="flex flex-col gap-y-1.5">
-      <label className="text-sm font-medium text-white flex items-center gap-x-1.5">
+      <label className="text-sm font-medium text-theme-text-primary flex items-center gap-x-1.5">
         {question.label}
         {question.required && (
           <span className="text-red-400 text-xs" aria-label="required">*</span>
         )}
       </label>
       {question.placeholder && !error && (
-        <p className="text-xs text-white/40 -mt-1">{question.placeholder}</p>
+        <p className="text-xs text-theme-text-secondary -mt-1">{question.placeholder}</p>
       )}
       {error && (
         <p className="text-xs text-red-400 flex items-center gap-x-1" role="alert">
@@ -36,9 +36,9 @@ function FieldWrapper({ question, error, children }) {
 }
 
 const inputBase =
-  "w-full rounded-xl px-4 py-3 text-sm bg-white/5 border text-white placeholder:text-white/30 focus:outline-none focus:ring-2 transition-colors";
-const inputNormal = `${inputBase} border-white/10 focus:border-white/30 focus:ring-white/10`;
-const inputError = `${inputBase} border-red-400/60 focus:border-red-400 focus:ring-red-400/20`;
+  "plv2-input w-full rounded-xl px-4 py-3 text-sm transition-colors focus:outline-none";
+const inputNormal = inputBase;
+const inputError = `${inputBase} border-red-400/70 focus:border-red-400`;
 
 function TextField({ question, value, onChange, error }) {
   return (
@@ -102,12 +102,12 @@ function SelectField({ question, value, onChange, error }) {
         >
           <option value="" disabled>Select an option…</option>
           {options.map((opt) => (
-            <option key={opt} value={opt} className="bg-theme-bg-secondary text-white">
+            <option key={opt} value={opt} className="bg-theme-bg-secondary text-theme-text-primary">
               {opt}
             </option>
           ))}
         </select>
-        <CaretDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
+        <CaretDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-text-secondary pointer-events-none" />
       </div>
     </FieldWrapper>
   );
@@ -135,10 +135,10 @@ function MultiSelectField({ question, value, onChange, error }) {
               key={opt}
               onClick={() => toggle(opt)}
               aria-pressed={active}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all focus:outline-none focus:ring-2 focus:ring-white/20 ${
+              className={`plv2-chip px-3 py-1.5 rounded-lg text-sm font-medium border transition-all focus:outline-none ${
                 active
-                  ? "bg-white/15 border-white/40 text-white"
-                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+                  ? "plv2-chip-active"
+                  : ""
               } ${error ? "border-red-400/40" : ""}`}
             >
               {opt}
@@ -165,10 +165,10 @@ function CheckboxField({ question, value, onChange }) {
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(question.variable, String(e.target.checked))}
-        className="mt-0.5 w-4 h-4 rounded accent-white cursor-pointer shrink-0"
+        className="mt-0.5 w-4 h-4 rounded accent-[var(--theme-button-primary)] cursor-pointer shrink-0"
         aria-required={question.required}
       />
-      <label htmlFor={id} className="text-sm text-white cursor-pointer select-none">
+      <label htmlFor={id} className="text-sm text-theme-text-primary cursor-pointer select-none">
         {question.label}
         {question.required && <span className="text-red-400 ml-1 text-xs">*</span>}
       </label>
@@ -184,6 +184,17 @@ const FIELD_MAP = {
   multiselect: MultiSelectField,
   checkbox: CheckboxField,
 };
+
+function hasAnswer(value) {
+  if (value === undefined || value === null) return false;
+  return String(value).trim() !== "";
+}
+
+function visibleQuestionsFor(questions, answers) {
+  return questions.filter(
+    (question) => question?.variable && isQuestionVisible(question, answers)
+  );
+}
 
 // ─── Main InlineForm ──────────────────────────────────────────────────────────
 
@@ -216,6 +227,14 @@ export default function InlineForm({ libraries = [], loading = false, onGenerate
 
   const selectedLib = safeLibraries.find((l) => l?.id === selectedId) ?? null;
   const questions = Array.isArray(selectedLib?.questions) ? selectedLib.questions : [];
+  const visibleQuestions = visibleQuestionsFor(questions, answers);
+  const answeredVisibleQuestions = visibleQuestions.filter((q) =>
+    hasAnswer(answers[q.variable])
+  ).length;
+  const requiredVisibleQuestions = visibleQuestions.filter((q) => q.required);
+  const completedRequiredQuestions = requiredVisibleQuestions.filter((q) =>
+    hasAnswer(answers[q.variable])
+  ).length;
 
   // Pre-fill defaults when library changes
   useEffect(() => {
@@ -287,9 +306,9 @@ export default function InlineForm({ libraries = [], loading = false, onGenerate
   // Loading state — shown while libraries are being fetched
   if (loading) {
     return (
-      <div className="flex flex-col h-full w-full overflow-hidden bg-theme-bg-secondary">
+      <div className="plv2-shell flex flex-col h-full w-full overflow-hidden">
         <TopBar onClose={onClose} />
-        <div className="flex-1 flex flex-col items-center justify-center gap-y-3 text-white/40">
+        <div className="flex-1 flex flex-col items-center justify-center gap-y-3 text-theme-text-secondary">
           <CircleNotch className="h-8 w-8 animate-spin" />
           <p className="text-sm">Loading libraries…</p>
         </div>
@@ -306,24 +325,24 @@ export default function InlineForm({ libraries = [], loading = false, onGenerate
 
   return (
     <div
-      className="flex flex-col h-full w-full overflow-hidden bg-theme-bg-secondary"
+      className="plv2-shell flex flex-col h-full w-full overflow-hidden"
       onKeyDown={handleKeyDown}
     >
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-x-3 px-4 md:px-6 py-4 border-b border-white/10 shrink-0">
+      <div className="flex items-center gap-x-3 px-4 md:px-6 py-4 border-b border-theme-sidebar-border shrink-0">
         <button
           type="button"
           onClick={onClose}
           aria-label="Back to chat"
-          className="flex items-center gap-x-1.5 text-white/50 hover:text-white transition-colors text-sm focus:outline-none focus:text-white"
+          className="flex items-center gap-x-1.5 text-theme-text-secondary hover:text-theme-text-primary transition-colors text-sm focus:outline-none focus:text-theme-text-primary"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
         <div className="flex items-center gap-x-2 ml-2">
-          <BookBookmark className="h-4 w-4 text-white/70" weight="fill" />
-          <span className="text-sm font-semibold text-white">Prompt Library</span>
+          <BookBookmark className="h-4 w-4 text-[var(--theme-button-primary)]" weight="fill" />
+          <span className="text-sm font-semibold text-theme-text-primary">Prompt Library</span>
         </div>
 
         {/* Library selector — only show when multiple libraries */}
@@ -332,17 +351,17 @@ export default function InlineForm({ libraries = [], loading = false, onGenerate
             <select
               value={selectedId ?? ""}
               onChange={(e) => setSelectedId(Number(e.target.value) || null)}
-              className="appearance-none text-sm bg-white/10 border border-white/15 text-white rounded-lg pl-3 pr-8 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/20 cursor-pointer"
+              className="plv2-input appearance-none text-sm rounded-lg pl-3 pr-8 py-1.5 cursor-pointer"
               aria-label="Select prompt library"
             >
               <option value="" disabled>Select a library…</option>
               {safeLibraries.map((lib) => (
-                <option key={lib.id} value={lib.id} className="bg-theme-bg-secondary">
+                <option key={lib.id} value={lib.id} className="bg-theme-bg-secondary text-theme-text-primary">
                   {lib.name ?? "Unnamed"}
                 </option>
               ))}
             </select>
-            <CaretDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 pointer-events-none" />
+            <CaretDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-text-secondary pointer-events-none" />
           </div>
         )}
       </div>
@@ -353,67 +372,105 @@ export default function InlineForm({ libraries = [], loading = false, onGenerate
           // No library selected yet — show picker
           <LibraryPicker libraries={safeLibraries} onSelect={(id) => setSelectedId(id)} />
         ) : (
-          <div className="max-w-2xl mx-auto flex flex-col gap-y-6">
-            {/* Library header */}
-            <div className="flex flex-col gap-y-1">
-              <h2 className="text-lg font-semibold text-white">{selectedLib.name ?? ""}</h2>
-              {selectedLib.description && (
-                <p className="text-sm text-white/50">{selectedLib.description}</p>
+          <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+            <aside className="lg:sticky lg:top-0 lg:self-start">
+              <TemplateSummaryCard
+                library={selectedLib}
+                totalVisibleQuestions={visibleQuestions.length}
+                answeredVisibleQuestions={answeredVisibleQuestions}
+                requiredVisibleQuestions={requiredVisibleQuestions.length}
+                completedRequiredQuestions={completedRequiredQuestions}
+                onChangeTemplate={
+                  safeLibraries.length > 1 ? () => setSelectedId(null) : null
+                }
+              />
+            </aside>
+
+            <div className="flex min-w-0 flex-col gap-y-5">
+              {questions.length === 0 ? (
+                <div className="plv2-card rounded-2xl p-5">
+                  <p className="text-sm text-theme-text-secondary italic">
+                    This template has no questions. Click Generate to use it directly.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <section className="plv2-card plv2-card-accent rounded-2xl p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-[0.18em] text-theme-text-secondary">
+                          Input collection
+                        </p>
+                        <h2 className="mt-2 text-lg font-semibold text-theme-text-primary">
+                          Provide the details for this prompt
+                        </h2>
+                        <p className="mt-1 text-sm text-theme-text-secondary">
+                          Fill the required fields first, then add any optional context
+                          that would make the output sharper.
+                        </p>
+                      </div>
+                      <div className="plv2-pill shrink-0 px-3 py-1.5 text-xs">
+                        {answeredVisibleQuestions}/{visibleQuestions.length} answered
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="flex flex-col gap-y-4">
+                    {visibleQuestions.map((q, index) => {
+                      const Component = FIELD_MAP[q.type] ?? TextField;
+                      return (
+                        <QuestionCard
+                          key={q.variable}
+                          id={`plv2-field-${q.variable}`}
+                          index={index}
+                          question={q}
+                          answered={hasAnswer(answers[q.variable])}
+                        >
+                          <Component
+                            question={q}
+                            value={answers[q.variable] ?? ""}
+                            onChange={handleChange}
+                            error={errors[q.variable]}
+                          />
+                        </QuestionCard>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {questions.some((q) => q?.required) && (
+                <p className="text-xs text-theme-text-secondary">
+                  Fields marked with <span className="text-red-400">*</span> are required.
+                </p>
               )}
             </div>
-
-            {/* Questions */}
-            {questions.length === 0 ? (
-              <p className="text-sm text-white/40 italic">
-                This template has no questions. Click Generate to use it directly.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-y-5">
-                {questions.map((q) => {
-                  if (!q?.variable) return null;
-                  if (!isQuestionVisible(q, answers)) return null;
-                  const Component = FIELD_MAP[q.type] ?? TextField;
-                  return (
-                    <div key={q.variable} id={`plv2-field-${q.variable}`}>
-                      <Component
-                        question={q}
-                        value={answers[q.variable] ?? ""}
-                        onChange={handleChange}
-                        error={errors[q.variable]}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Required note */}
-            {questions.some((q) => q?.required) && (
-              <p className="text-xs text-white/30">
-                Fields marked with <span className="text-red-400">*</span> are required.
-              </p>
-            )}
           </div>
         )}
       </div>
 
       {/* ── Footer CTA ───────────────────────────────────────────────────── */}
       {selectedLib && (
-        <div className="shrink-0 border-t border-white/10 px-4 md:px-6 py-4 flex items-center justify-between gap-x-4">
-          <p className="text-xs text-white/30 hidden md:block">
-            Tip: press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/50 font-mono text-[10px]">Ctrl</kbd> +{" "}
-            <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-white/50 font-mono text-[10px]">Enter</kbd> to generate
-          </p>
+        <div className="shrink-0 border-t border-theme-sidebar-border px-4 md:px-6 py-4 flex items-center justify-between gap-x-4">
+          <div className="hidden md:flex flex-col gap-y-1">
+            <p className="text-xs text-theme-text-secondary">
+              Tip: press <kbd className="plv2-kbd px-1.5 py-0.5 rounded font-mono text-[10px]">Ctrl</kbd> +{" "}
+              <kbd className="plv2-kbd px-1.5 py-0.5 rounded font-mono text-[10px]">Enter</kbd> to generate
+            </p>
+            <p className="text-[11px] text-theme-text-secondary">
+              Required fields completed: {completedRequiredQuestions}/{requiredVisibleQuestions.length}
+            </p>
+          </div>
 
           <button
             type="button"
             onClick={handleGenerate}
             disabled={submitting || success}
             aria-label="Generate prompt"
-            className={`ml-auto flex items-center gap-x-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-white/30 disabled:cursor-not-allowed ${
+            className={`ml-auto flex items-center gap-x-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all focus:outline-none disabled:cursor-not-allowed ${
               success
-                ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                : "bg-white text-black hover:bg-white/90 disabled:opacity-50"
+                ? "bg-green-500/15 text-green-600 border border-green-500/30 dark:text-green-400"
+                : "plv2-cta disabled:opacity-50"
             }`}
           >
             {success ? (
@@ -443,50 +500,201 @@ export default function InlineForm({ libraries = [], loading = false, onGenerate
 
 function TopBar({ onClose }) {
   return (
-    <div className="flex items-center gap-x-3 px-4 md:px-6 py-4 border-b border-white/10 shrink-0">
+    <div className="flex items-center gap-x-3 px-4 md:px-6 py-4 border-b border-theme-sidebar-border shrink-0">
       <button
         type="button"
         onClick={onClose}
         aria-label="Back to chat"
-        className="flex items-center gap-x-1.5 text-white/50 hover:text-white transition-colors text-sm focus:outline-none focus:text-white"
+        className="flex items-center gap-x-1.5 text-theme-text-secondary hover:text-theme-text-primary transition-colors text-sm focus:outline-none focus:text-theme-text-primary"
       >
         <ArrowLeft className="h-4 w-4" />
         Back
       </button>
       <div className="flex items-center gap-x-2 ml-2">
-        <BookBookmark className="h-4 w-4 text-white/70" weight="fill" />
-        <span className="text-sm font-semibold text-white">Prompt Library</span>
+        <BookBookmark className="h-4 w-4 text-[var(--theme-button-primary)]" weight="fill" />
+        <span className="text-sm font-semibold text-theme-text-primary">Prompt Library</span>
       </div>
     </div>
   );
 }
 
+function TemplateSummaryCard({
+  library,
+  totalVisibleQuestions,
+  answeredVisibleQuestions,
+  requiredVisibleQuestions,
+  completedRequiredQuestions,
+  onChangeTemplate,
+}) {
+  return (
+    <div className="plv2-card plv2-card-accent rounded-2xl p-5 shadow-[0_16px_48px_rgba(0,0,0,0.12)]">
+      <div className="flex items-center gap-x-2">
+        <div className="plv2-icon-badge flex h-10 w-10 items-center justify-center rounded-xl">
+          <BookBookmark className="h-5 w-5" weight="fill" />
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-theme-text-secondary">
+            Selected template
+          </p>
+          <p className="text-sm font-semibold text-theme-text-primary">Prompt Library</p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <h2 className="text-lg font-semibold text-theme-text-primary">{library.name ?? ""}</h2>
+        <p className="mt-2 text-sm leading-6 text-theme-text-secondary">
+          {library.description || "No description provided for this template yet."}
+        </p>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <SummaryMetric
+          label="Visible fields"
+          value={String(totalVisibleQuestions)}
+        />
+        <SummaryMetric
+          label="Answered"
+          value={`${answeredVisibleQuestions}/${totalVisibleQuestions}`}
+        />
+        <SummaryMetric
+          label="Required"
+          value={String(requiredVisibleQuestions)}
+        />
+        <SummaryMetric
+          label="Ready"
+          value={`${completedRequiredQuestions}/${requiredVisibleQuestions}`}
+        />
+      </div>
+
+      <div className="mt-5 rounded-xl border border-theme-sidebar-border bg-theme-bg-container px-4 py-3">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-theme-text-secondary">
+          How to use
+        </p>
+        <p className="mt-2 text-sm leading-6 text-theme-text-secondary">
+          Give concise business context first, then add the specifics that should
+          influence tone, scope, or recommendations.
+        </p>
+      </div>
+
+      {onChangeTemplate && (
+        <button
+          type="button"
+          onClick={onChangeTemplate}
+          className="mt-4 inline-flex items-center gap-x-1.5 rounded-xl border border-theme-sidebar-border px-3 py-2 text-sm text-theme-text-secondary transition-colors hover:bg-theme-bg-container hover:text-theme-text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Change template
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SummaryMetric({ label, value }) {
+  return (
+    <div className="rounded-xl border border-theme-sidebar-border bg-theme-bg-container px-3 py-3">
+      <p className="text-[11px] uppercase tracking-[0.12em] text-theme-text-secondary">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-semibold text-theme-text-primary">{value}</p>
+    </div>
+  );
+}
+
+function QuestionCard({ id, index, question, answered, children }) {
+  return (
+    <section
+      id={id}
+      className={`rounded-2xl border p-5 transition-colors ${
+        answered
+          ? "plv2-card plv2-card-active"
+          : "plv2-card"
+      }`}
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-x-3">
+          <div
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+              answered
+                ? "bg-[var(--theme-button-primary)] text-black"
+                : "bg-theme-bg-container text-theme-text-secondary"
+            }`}
+          >
+            {index + 1}
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-theme-text-secondary">
+              {question.type === "textarea" ? "Detailed input" : "Input"}
+            </p>
+            <p className="mt-0.5 text-sm font-medium text-theme-text-primary">
+              {question.label}
+            </p>
+          </div>
+        </div>
+        <div
+          className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+            question.required
+              ? "plv2-required-badge"
+              : "plv2-optional-badge"
+          }`}
+        >
+          {question.required ? "Required" : "Optional"}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
 function LibraryPicker({ libraries, onSelect }) {
   return (
-    <div className="max-w-2xl mx-auto">
-      <p className="text-sm text-white/50 mb-4">Choose a template to get started:</p>
-      <div className="flex flex-col gap-y-3">
+    <div className="max-w-5xl mx-auto">
+      <div className="plv2-card plv2-card-accent mb-6 rounded-2xl p-5">
+        <p className="text-xs uppercase tracking-[0.18em] text-theme-text-secondary">
+          Prompt Library
+        </p>
+        <h2 className="mt-2 text-xl font-semibold text-theme-text-primary">
+          Choose a template to get started
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-theme-text-secondary">
+          Select the prompt flow that best matches the task. Each template has its
+          own description and a structured input form.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {libraries.map((lib) => (
           <button
             type="button"
             key={lib.id}
             onClick={() => onSelect(lib.id)}
-            className="text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-white/20 group"
+            className="plv2-card group text-left rounded-2xl p-5 transition-all hover:-translate-y-0.5 focus:outline-none"
           >
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-white group-hover:text-white">
+            <div className="flex items-start justify-between gap-3">
+              <div className="plv2-icon-badge flex h-10 w-10 items-center justify-center rounded-xl transition-colors">
+                <BookBookmark className="h-5 w-5" weight="fill" />
+              </div>
+              <ArrowRight className="mt-1 h-4 w-4 text-theme-text-secondary transition-colors group-hover:text-theme-text-primary" />
+            </div>
+
+            <div className="mt-5">
+              <p className="text-base font-semibold text-theme-text-primary">
                 {lib.name ?? "Unnamed"}
               </p>
-              <ArrowRight className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
-            </div>
-            {lib.description && (
-              <p className="text-xs text-white/40 mt-1">{lib.description}</p>
-            )}
-            {Array.isArray(lib.questions) && lib.questions.length > 0 && (
-              <p className="text-[10px] text-white/25 mt-2">
-                {lib.questions.length} question{lib.questions.length !== 1 ? "s" : ""}
+              <p className="mt-2 min-h-[3rem] text-sm leading-6 text-theme-text-secondary">
+                {lib.description || "No description available for this template."}
               </p>
-            )}
+            </div>
+
+            <div className="mt-5 flex items-center justify-between border-t border-theme-sidebar-border pt-4">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-theme-text-secondary">
+                {Array.isArray(lib.questions) ? lib.questions.length : 0} question
+                {Array.isArray(lib.questions) && lib.questions.length !== 1 ? "s" : ""}
+              </p>
+              <span className="text-sm font-medium text-theme-text-secondary group-hover:text-theme-text-primary">
+                Open
+              </span>
+            </div>
           </button>
         ))}
       </div>
@@ -496,15 +704,15 @@ function LibraryPicker({ libraries, onSelect }) {
 
 function EmptyState({ onClose }) {
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-theme-bg-secondary">
+    <div className="plv2-shell flex flex-col h-full w-full overflow-hidden">
       <TopBar onClose={onClose} />
-      <div className="flex-1 flex flex-col items-center justify-center gap-y-3 text-white/40">
-        <BookBookmark className="h-10 w-10" weight="duotone" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-y-3 text-theme-text-secondary">
+        <BookBookmark className="h-10 w-10 text-[var(--theme-button-primary)]" weight="duotone" />
         <p className="text-sm">No prompt libraries are available for this workspace.</p>
         <button
           type="button"
           onClick={onClose}
-          className="text-xs text-white/30 hover:text-white/60 underline underline-offset-2 transition-colors mt-2"
+          className="text-xs text-theme-text-secondary hover:text-theme-text-primary underline underline-offset-2 transition-colors mt-2"
         >
           Back to chat
         </button>

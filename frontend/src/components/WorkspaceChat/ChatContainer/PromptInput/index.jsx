@@ -39,6 +39,7 @@ const MAX_EDIT_STACK_SIZE = 100;
  * @param {boolean} [props.centered] - renders in centered layout mode (for home page)
  * @param {string} [props.workspaceSlug] - workspace slug for home page context
  * @param {string} [props.threadSlug] - thread slug for home page context
+ * @param {(workspaceSlug: string | null) => void} [props.onOpenPromptLibrary] - open prompt library panel
  */
 export default function PromptInput({
   submit,
@@ -48,6 +49,7 @@ export default function PromptInput({
   centered = false,
   workspaceSlug = null,
   threadSlug = null,
+  onOpenPromptLibrary = null,
 }) {
   const { t } = useTranslation();
   const { isDisabled } = useIsDisabled();
@@ -332,7 +334,10 @@ export default function PromptInput({
                 />
                 <TextSizeButton />
                 <LLMSelectorAction workspaceSlug={workspaceSlug} />
-                <PromptLibraryV2Button workspaceSlug={workspaceSlug} />
+                <PromptLibraryV2Button
+                  workspaceSlug={workspaceSlug}
+                  onOpen={onOpenPromptLibrary}
+                />
               </div>
               <div className="flex gap-x-2 items-center h-5">
                 <SpeechToText sendCommand={sendCommand} />
