@@ -31,11 +31,9 @@ function ShowWorkspaceChat() {
       if (!_workspace) return setLoading(false);
 
       const suggestedMessages = await Workspace.getSuggestedMessages(slug);
-      const pfpUrl = await Workspace.fetchPfp(slug);
       setWorkspace({
         ..._workspace,
         suggestedMessages,
-        pfpUrl,
       });
       setLoading(false);
       localStorage.setItem(
@@ -50,9 +48,11 @@ function ShowWorkspaceChat() {
   }, []);
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-theme-bg-container flex">
-      {!isMobile && <Sidebar />}
-      <WorkspaceChatContainer loading={loading} workspace={workspace} />
-    </div>
+    <>
+      <div className="w-screen h-screen overflow-hidden bg-zinc-950 light:bg-slate-50 flex">
+        {!isMobile && <Sidebar />}
+        <WorkspaceChatContainer loading={loading} workspace={workspace} />
+      </div>
+    </>
   );
 }
