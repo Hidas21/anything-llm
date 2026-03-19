@@ -451,6 +451,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
               </div>
               <SuggestedMessages
                 suggestedMessages={workspace?.suggestedMessages}
+                sendCommand={sendCommand}
               />
               <ChatTooltips />
             </div>
