@@ -42,7 +42,7 @@ function WorkspaceDirectory({
   };
 
   const toggleSelectAll = () => {
-    const allItems = files.items.flatMap((folder) => folder.items);
+    const allItems = (files?.items ?? []).flatMap((folder) => folder.items);
     const allSelected = allItems.every((item) => selectedItems[item.id]);
     if (allSelected) {
       setSelectedItems({});
@@ -60,7 +60,7 @@ function WorkspaceDirectory({
     setLoadingMessage("Removing selected files from workspace");
 
     const itemsToRemove = Object.keys(selectedItems).map((itemId) => {
-      const folder = files.items.find((f) =>
+      const folder = (files?.items ?? []).find((f) =>
         f.items.some((i) => i.id === itemId)
       );
       const item = folder.items.find((i) => i.id === itemId);
@@ -132,13 +132,13 @@ function WorkspaceDirectory({
             <div className="text-white/80 text-xs grid grid-cols-12 py-2 px-3.5 border-b border-white/20 light:border-theme-modal-border bg-theme-settings-input-bg sticky top-0 z-10">
               <div className="col-span-10 flex items-center gap-x-[4px]">
                 {!hasChanges &&
-                files.items.some((folder) => folder.items.length > 0) ? (
+                files?.items?.some((folder) => folder.items.length > 0) ? (
                   <div
                     className={`shrink-0 w-3 h-3 rounded border-[1px] border-solid border-white text-theme-text-primary light:invert flex justify-center items-center cursor-pointer`}
                     role="checkbox"
                     aria-checked={
                       Object.keys(selectedItems).length ===
-                      files.items.reduce(
+                      (files?.items ?? []).reduce(
                         (sum, folder) => sum + folder.items.length,
                         0
                       )
@@ -147,7 +147,7 @@ function WorkspaceDirectory({
                     onClick={toggleSelectAll}
                   >
                     {Object.keys(selectedItems).length ===
-                      files.items.reduce(
+                      (files?.items ?? []).reduce(
                         (sum, folder) => sum + folder.items.length,
                         0
                       ) && <div className="w-2 h-2 bg-white rounded-[2px]" />}
@@ -160,7 +160,7 @@ function WorkspaceDirectory({
               <p className="col-span-2" />
             </div>
             <div className="overflow-y-auto h-[calc(100%-40px)]">
-              {files.items.some((folder) => folder.items.length > 0) ||
+              {files?.items?.some((folder) => folder.items.length > 0) ||
               movedItems.length > 0 ? (
                 <RenderFileRows
                   files={files}
@@ -203,7 +203,7 @@ function WorkspaceDirectory({
                       className="border-none text-sm font-semibold bg-white light:bg-[#E0F2FE] h-[30px] px-2.5 rounded-lg hover:bg-neutral-800/80 hover:text-white light:text-[#026AA2] light:hover:bg-[#026AA2] light:hover:text-white"
                     >
                       {Object.keys(selectedItems).length ===
-                      files.items.reduce(
+                      (files?.items ?? []).reduce(
                         (sum, folder) => sum + folder.items.length,
                         0
                       )
@@ -404,11 +404,11 @@ function RenderFileRows({ files, movedItems, children, workspace }) {
     return 0;
   }
 
-  return files.items
+  return (files?.items ?? [])
     .flatMap((folder) => folder.items)
     .sort(sortMovedItemsAndFiles)
     .map((item) => {
-      const folder = files.items.find((f) => f.items.includes(item));
+      const folder = (files?.items ?? []).find((f) => f.items.includes(item));
       return children({ item, folder });
     });
 }

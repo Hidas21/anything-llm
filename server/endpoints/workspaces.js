@@ -114,12 +114,23 @@ function workspaceEndpoints(app) {
     "/workspace/:slug/upload",
     [
       validatedRequest,
-      flexUserRoleValid([ROLES.admin, ROLES.manager]),
+      flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager]),
       handleFileUpload,
       duplicateFileGuard,
     ],
     async function (request, response) {
       try {
+        const user = await userFromSession(request, response);
+        if (multiUserMode(response)) {
+          const workspace = await Workspace.getWithUser(user, {
+            slug: request.params.slug,
+          });
+          if (!workspace) {
+            response.sendStatus(400).end();
+            return;
+          }
+        }
+
         const Collector = new CollectorApi();
         const { originalname } = request.file;
         const processingOnline = await Collector.online();
@@ -163,9 +174,23 @@ function workspaceEndpoints(app) {
 
   app.post(
     "/workspace/:slug/upload-link",
-    [validatedRequest, flexUserRoleValid([ROLES.admin, ROLES.manager])],
+    [
+      validatedRequest,
+      flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager]),
+    ],
     async (request, response) => {
       try {
+        const user = await userFromSession(request, response);
+        if (multiUserMode(response)) {
+          const workspace = await Workspace.getWithUser(user, {
+            slug: request.params.slug,
+          });
+          if (!workspace) {
+            response.sendStatus(400).end();
+            return;
+          }
+        }
+
         const Collector = new CollectorApi();
         const { link = "" } = reqBody(request);
         const processingOnline = await Collector.online();
@@ -206,7 +231,10 @@ function workspaceEndpoints(app) {
 
   app.post(
     "/workspace/:slug/update-embeddings",
-    [validatedRequest, flexUserRoleValid([ROLES.admin, ROLES.manager])],
+    [
+      validatedRequest,
+      flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager]),
+    ],
     async (request, response) => {
       try {
         const user = await userFromSession(request, response);

@@ -17,9 +17,10 @@ const MODEL_COSTS = {
 
 export default function DocumentSettings({ workspace, systemSettings }) {
   const [highlightWorkspace, setHighlightWorkspace] = useState(false);
-  const [availableDocs, setAvailableDocs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [workspaceDocs, setWorkspaceDocs] = useState([]);
+  const [availableDocs, setAvailableDocs] = useState({ items: [] });
+  const [directoryLoading, setDirectoryLoading] = useState(true);
+  const [workspaceLoading, setWorkspaceLoading] = useState(true);
+  const [workspaceDocs, setWorkspaceDocs] = useState({ items: [] });
   const [selectedItems, setSelectedItems] = useState({});
   const [hasChanges, setHasChanges] = useState(false);
   const [movedItems, setMovedItems] = useState([]);
@@ -27,19 +28,17 @@ export default function DocumentSettings({ workspace, systemSettings }) {
   const [loadingMessage, setLoadingMessage] = useState("");
 
   async function fetchKeys(refetchWorkspace = false) {
-    setLoading(true);
     const localFiles = await System.localFiles();
     const currentWorkspace = refetchWorkspace
       ? await Workspace.bySlug(workspace.slug)
       : workspace;
 
     const documentsInWorkspace =
-      currentWorkspace.documents.map((doc) => doc.docpath) || [];
+      currentWorkspace?.documents?.map((doc) => doc.docpath) || [];
 
-    // Documents that are not in the workspace
     const availableDocs = {
-      ...localFiles,
-      items: localFiles.items.map((folder) => {
+      ...(localFiles ?? {}),
+      items: (localFiles?.items ?? []).map((folder) => {
         if (folder.items && folder.type === "folder") {
           return {
             ...folder,
@@ -49,16 +48,14 @@ export default function DocumentSettings({ workspace, systemSettings }) {
                 !documentsInWorkspace.includes(`${folder.name}/${file.name}`)
             ),
           };
-        } else {
-          return folder;
         }
+        return folder;
       }),
     };
 
-    // Documents that are already in the workspace
     const workspaceDocs = {
-      ...localFiles,
-      items: localFiles.items.map((folder) => {
+      ...(localFiles ?? {}),
+      items: (localFiles?.items ?? []).map((folder) => {
         if (folder.items && folder.type === "folder") {
           return {
             ...folder,
@@ -68,24 +65,30 @@ export default function DocumentSettings({ workspace, systemSettings }) {
                 documentsInWorkspace.includes(`${folder.name}/${file.name}`)
             ),
           };
-        } else {
-          return folder;
         }
+        return folder;
       }),
     };
 
     setAvailableDocs(availableDocs);
     setWorkspaceDocs(workspaceDocs);
-    setLoading(false);
   }
 
   useEffect(() => {
-    fetchKeys(true);
+    async function initialLoad() {
+      setDirectoryLoading(true);
+      setWorkspaceLoading(true);
+      await fetchKeys(true);
+      setDirectoryLoading(false);
+      setWorkspaceLoading(false);
+    }
+    initialLoad();
   }, []);
 
   const updateWorkspace = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setWorkspaceLoading(true);
+    setDirectoryLoading(true);
     showToast("Updating workspace...", "info", { autoClose: false });
     setLoadingMessage("This may take a while for large documents");
 
@@ -102,19 +105,16 @@ export default function DocumentSettings({ workspace, systemSettings }) {
           showToast(`Error: ${res.message}`, "error", { clear: true });
           return;
         }
-        showToast("Workspace updated successfully.", "success", {
-          clear: true,
-        });
+        showToast("Workspace updated successfully.", "success", { clear: true });
       })
       .catch((error) => {
-        showToast(`Workspace update failed: ${error}`, "error", {
-          clear: true,
-        });
+        showToast(`Workspace update failed: ${error}`, "error", { clear: true });
       });
 
     setMovedItems([]);
     await fetchKeys(true);
-    setLoading(false);
+    setDirectoryLoading(false);
+    setWorkspaceLoading(false);
     setLoadingMessage("");
   };
 
@@ -195,9 +195,9 @@ export default function DocumentSettings({ workspace, systemSettings }) {
       <Directory
         files={availableDocs}
         setFiles={setAvailableDocs}
-        loading={loading}
+        loading={directoryLoading}
         loadingMessage={loadingMessage}
-        setLoading={setLoading}
+        setLoading={setDirectoryLoading}
         workspace={workspace}
         fetchKeys={fetchKeys}
         selectedItems={selectedItems}
@@ -215,10 +215,10 @@ export default function DocumentSettings({ workspace, systemSettings }) {
         workspace={workspace}
         files={workspaceDocs}
         highlightWorkspace={highlightWorkspace}
-        loading={loading}
+        loading={workspaceLoading}
         loadingMessage={loadingMessage}
         setLoadingMessage={setLoadingMessage}
-        setLoading={setLoading}
+        setLoading={setWorkspaceLoading}
         fetchKeys={fetchKeys}
         hasChanges={hasChanges}
         saveChanges={updateWorkspace}

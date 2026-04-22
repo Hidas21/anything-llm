@@ -116,6 +116,11 @@ const ROLE_HINT = {
     "Can only send chats with workspaces they are added to by admin or managers.",
     "Cannot modify any settings at all.",
   ],
+  workspace_manager: [
+    "Can only see workspaces they are explicitly assigned to.",
+    "Can upload files, links, and manage embeddings in their assigned workspaces.",
+    "Cannot create or delete workspaces, manage users, or modify system settings.",
+  ],
   manager: [
     "Can view, create, and delete any workspaces and modify workspace-specific settings.",
     "Can create, update and invite new users to the instance.",

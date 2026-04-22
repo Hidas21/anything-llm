@@ -160,7 +160,9 @@ export function ManagerRoute({ Component }) {
   }
 
   const user = userFromStorage();
-  return isAuthd && (user?.role !== "default" || !multiUserMode) ? (
+  const hasManagerAccess =
+    user?.role === "admin" || user?.role === "manager";
+  return isAuthd && (hasManagerAccess || !multiUserMode) ? (
     <KeyboardShortcutWrapper>
       <UserMenu>
         <Component />

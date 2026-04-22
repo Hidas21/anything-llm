@@ -4,6 +4,7 @@ const ROLES = {
   all: "<all>",
   admin: "admin",
   manager: "manager",
+  workspace_manager: "workspace_manager",
   default: "default",
 };
 const DEFAULT_ROLES = [ROLES.admin, ROLES.admin];

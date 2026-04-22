@@ -12,8 +12,6 @@ import debounce from "lodash.debounce";
 export default function UploadFile({
   workspace,
   fetchKeys,
-  setLoading,
-  setLoadingMessage,
 }) {
   const { t } = useTranslation();
   const [ready, setReady] = useState(false);
@@ -22,8 +20,6 @@ export default function UploadFile({
 
   const handleSendLink = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setLoadingMessage("Scraping link...");
     setFetchingUrl(true);
     const formEl = e.target;
     const form = new FormData(formEl);
@@ -38,7 +34,6 @@ export default function UploadFile({
       showToast("Link uploaded successfully", "success");
       formEl.reset();
     }
-    setLoading(false);
     setFetchingUrl(false);
   };
 
@@ -123,8 +118,6 @@ export default function UploadFile({
                 reason={file?.reason}
                 onUploadSuccess={handleUploadSuccess}
                 onUploadError={handleUploadError}
-                setLoading={setLoading}
-                setLoadingMessage={setLoadingMessage}
               />
             ))}
           </div>

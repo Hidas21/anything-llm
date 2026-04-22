@@ -314,8 +314,6 @@ function Directory({
           <UploadFile
             workspace={workspace}
             fetchKeys={fetchKeys}
-            setLoading={setLoading}
-            setLoadingMessage={setLoadingMessage}
           />
         </div>
         {isFolderModalOpen && (
