@@ -39,6 +39,7 @@ const { purgeDocument } = require("../utils/files/purgeDocument");
 const { getModelTag } = require("./utils");
 const { searchWorkspaceAndThreads } = require("../utils/helpers/search");
 const { workspaceParsedFilesEndpoints } = require("./workspacesParsedFiles");
+const prisma = require("../utils/prisma");
 
 function workspaceEndpoints(app) {
   if (!app) return;
@@ -146,11 +147,25 @@ function workspaceEndpoints(app) {
           return;
         }
 
-        const { success, reason } =
+        const { success, reason, documents } =
           await Collector.processDocument(originalname);
         if (!success) {
           response.status(500).json({ success: false, error: reason }).end();
           return;
+        }
+
+        // Record uploader so workspace_manager filtering works on local-files
+        const uploaderId = user?.id ? Number(user.id) : null;
+        if (uploaderId && Array.isArray(documents)) {
+          for (const doc of documents) {
+            const docname = doc?.location ?? doc?.name ?? null;
+            if (!docname) continue;
+            await prisma.file_upload_hashes.upsert({
+              where: { hash: docname },
+              create: { hash: docname, filename: originalname, uploaded_by: uploaderId, uploaded_at: new Date().toISOString() },
+              update: { uploaded_by: uploaderId },
+            });
+          }
         }
 
         Collector.log(
@@ -1126,7 +1141,7 @@ function workspaceEndpoints(app) {
     "/workspace/:slug/embed-progress",
     [
       validatedRequest,
-      flexUserRoleValid([ROLES.admin, ROLES.manager]),
+      flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager]),
       validWorkspaceSlug,
     ],
     async (request, response) => {
@@ -1157,7 +1172,7 @@ function workspaceEndpoints(app) {
     "/workspace/:slug/embed-queue",
     [
       validatedRequest,
-      flexUserRoleValid([ROLES.admin, ROLES.manager]),
+      flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager]),
       validWorkspaceSlug,
     ],
     async (request, response) => {

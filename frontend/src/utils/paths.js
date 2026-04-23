@@ -173,6 +173,9 @@ export default {
     telegram: () => {
       return `/settings/external-connections/telegram`;
     },
+    promptLibraryV2: () => {
+      return `/settings/prompt-library-v2`;
+    },
   },
   agents: {
     builder: () => {

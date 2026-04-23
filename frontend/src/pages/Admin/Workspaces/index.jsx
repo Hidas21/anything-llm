@@ -105,7 +105,7 @@ function WorkspacesContainer() {
         </tr>
       </thead>
       <tbody>
-        {workspaces.map((workspace) => (
+        {workspaces.filter((w) => w.name !== "My Workspace").map((workspace) => (
           <WorkspaceRow
             key={workspace.id}
             workspace={workspace}

@@ -495,12 +495,12 @@ function systemEndpoints(app) {
     async (request, response) => {
       try {
         const localFiles = await viewLocalFiles();
-        // Annotate each file with uploadedBy from DB
-        const allDocs = await prisma.workspace_documents.findMany({
-          select: { docpath: true, uploadedBy: true },
+        // Annotate each file with uploadedBy from file_upload_hashes (upload-time tracking)
+        const uploadHashes = await prisma.file_upload_hashes.findMany({
+          select: { hash: true, uploaded_by: true },
         });
         const uploadedByMap = {};
-        for (const doc of allDocs) uploadedByMap[doc.docpath] = doc.uploadedBy;
+        for (const h of uploadHashes) uploadedByMap[h.hash] = h.uploaded_by;
         if (localFiles?.items) {
           for (const folder of localFiles.items) {
             if (folder.items) {
