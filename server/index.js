@@ -41,6 +41,8 @@ const {
 const {
   googleAgentSkillEndpoints,
 } = require("./endpoints/utils/googleAgentSkillEndpoints");
+const { aiConsentEndpoints } = require("./endpoints/aiConsent");
+const { promptLibraryV2Endpoints } = require("./endpoints/promptLibraryV2");
 const { httpLogger } = require("./middleware/httpLogger");
 const app = express();
 const apiRouter = express.Router();
@@ -97,6 +99,8 @@ webPushEndpoints(apiRouter);
 telegramEndpoints(apiRouter);
 outlookAgentEndpoints(apiRouter);
 googleAgentSkillEndpoints(apiRouter);
+aiConsentEndpoints(apiRouter);
+promptLibraryV2Endpoints(apiRouter);
 // Externally facing embedder endpoints
 embeddedEndpoints(apiRouter);
 
