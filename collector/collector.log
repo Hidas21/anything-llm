@@ -5,3 +5,47 @@ $ cross-env NODE_ENV=development nodemon --ignore hotdir --ignore storage --trac
 [33m[nodemon] watching path(s): *.*[39m
 [33m[nodemon] watching extensions: js,mjs,json[39m
 [32m[nodemon] starting `node --trace-warnings index.js`[39m
+[35m[TikTokenTokenizer][0m Initialized new TikTokenTokenizer instance.
+Collector hot directory and tmp storage wiped!
+Document processor app listening on port 8888
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node --trace-warnings index.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[35m[TikTokenTokenizer][0m Initialized new TikTokenTokenizer instance.
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+Collector hot directory and tmp storage wiped!
+Document processor app listening on port 8888
+[32m[nodemon] starting `node --trace-warnings index.js`[39m
+[35m[TikTokenTokenizer][0m Initialized new TikTokenTokenizer instance.
+Collector hot directory and tmp storage wiped!
+Document processor app listening on port 8888

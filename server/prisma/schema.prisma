@@ -9,6 +9,7 @@ datasource db {
 
 model api_keys {
   id            Int      @id @default(autoincrement())
+  name          String?
   secret        String?  @unique
   createdBy     Int?
   createdAt     DateTime @default(now())
@@ -444,10 +445,6 @@ model file_upload_hashes {
   @@index([hash], map: "idx_upload_hash")
 }
 
-// ─── AI Beleegyezés modul ─────────────────────────────────────────────────────
-// Tárolja a felhasználók AI rendszerhasználati beleegyező nyilatkozatának elfogadási adatait.
-// Elkülönített tábla – gyártói frissítés esetén sem töri meg a meglévő sémát.
-
 model ai_consents {
   id            Int      @id @default(autoincrement())
   userId        Int
@@ -456,4 +453,13 @@ model ai_consents {
   user          users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model external_communication_connectors {
+  id            Int      @id @default(autoincrement())
+  type          String   @unique
+  config        String   @default("{}")
+  active        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @default(now())
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { isMobile } from "react-device-detect";
 import { SidebarMobileHeader } from "@/components/Sidebar";
@@ -23,8 +23,6 @@ import { safeJsonParse } from "@/utils/request";
 import QuickActions from "@/components/lib/QuickActions";
 import SuggestedMessages from "@/components/lib/SuggestedMessages";
 import useUser from "@/hooks/useUser";
-import PromptLibraryV2Api from "@/models/promptLibraryV2";
-import InlineForm from "@/components/PromptLibraryV2/InlineForm";
 import TextSizeMenu from "@/components/WorkspaceChat/ChatContainer/TextSizeMenu";
 import WorkspaceModelPicker from "@/components/WorkspaceChat/ChatContainer/WorkspaceModelPicker";
 import { ChatTooltips } from "@/components/WorkspaceChat/ChatContainer/ChatTooltips";
@@ -66,11 +64,15 @@ export default function Home() {
     async function init() {
       const ws = await getTargetWorkspace();
       if (ws) {
-        const [suggestedMessages, pfpUrl] = await Promise.all([
+        const [suggestedMessages, { showAgentCommand }] = await Promise.all([
           Workspace.getSuggestedMessages(ws.slug),
-          Workspace.fetchPfp(ws.slug),
+          Workspace.agentCommandAvailable(ws.slug),
         ]);
-        setWorkspace({ ...ws, suggestedMessages, pfpUrl });
+        setWorkspace({
+          ...ws,
+          suggestedMessages,
+          showAgentCommand,
+        });
       }
       setWorkspaceLoading(false);
     }
@@ -183,9 +185,6 @@ function HomeContent({ workspace, setWorkspace, threadSlug, setThreadSlug }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { files, parseAttachments } = useContext(DndUploaderContext);
-  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
-  const [promptLibraries, setPromptLibraries] = useState([]);
-  const [librariesLoading, setLibrariesLoading] = useState(false);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -265,24 +264,6 @@ function HomeContent({ workspace, setWorkspace, threadSlug, setThreadSlug }) {
     );
   }
 
-  const openPromptLibrary = useCallback(
-    (workspaceSlug = null) => {
-      const slug = workspaceSlug ?? workspace?.slug;
-      setShowPromptLibrary(true);
-      setLibrariesLoading(true);
-      if (!slug) {
-        setPromptLibraries([]);
-        setLibrariesLoading(false);
-        return;
-      }
-      PromptLibraryV2Api.forWorkspace(slug)
-        .then((libs) => setPromptLibraries(Array.isArray(libs) ? libs : []))
-        .catch(() => setPromptLibraries([]))
-        .finally(() => setLibrariesLoading(false));
-    },
-    [workspace?.slug]
-  );
-
   async function handleEditWorkspace() {
     let targetWorkspace = workspace;
 
@@ -305,49 +286,37 @@ function HomeContent({ workspace, setWorkspace, threadSlug, setThreadSlug }) {
       {isMobile && <SidebarMobileHeader />}
       <TextSizeMenu />
       <WorkspaceModelPicker workspaceSlug={workspace?.slug} />
-      {showPromptLibrary ? (
-        <InlineForm
-          libraries={promptLibraries}
-          loading={librariesLoading}
-          onClose={() => setShowPromptLibrary(false)}
-          onGenerate={(prompt) => {
-            setShowPromptLibrary(false);
-            submitMessage(prompt.trim());
-          }}
-        />
-      ) : (
-        <DnDFileUploaderWrapper>
-          <div className="flex flex-col h-full w-full items-center justify-center">
-            <div className="flex flex-col items-center w-full max-w-[750px]">
-              <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
-                {t("main-page.greeting")}
-              </h1>
-              <PromptInput
-                submit={handleSubmit}
-                isStreaming={loading}
-                sendCommand={sendCommand}
-                attachments={files}
-                centered={true}
-                workspaceSlug={workspace?.slug}
-                threadSlug={threadSlug}
-                onOpenPromptLibrary={openPromptLibrary}
-              />
-              <QuickActions
-                hasAvailableWorkspace={!!workspace}
-                onCreateAgent={() => navigate(paths.settings.agentSkills())}
-                onEditWorkspace={handleEditWorkspace}
-                onUploadDocument={() =>
-                  document.getElementById("dnd-chat-file-uploader")?.click()
-                }
-              />
-            </div>
-            <SuggestedMessages
-              suggestedMessages={workspace?.suggestedMessages}
+      <DnDFileUploaderWrapper>
+        <div className="flex flex-col h-full w-full items-center justify-center">
+          <div className="flex flex-col items-center w-full max-w-[750px]">
+            <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
+              {t("main-page.greeting")}
+            </h1>
+            <PromptInput
+              workspace={workspace}
+              submit={handleSubmit}
+              isStreaming={loading}
               sendCommand={sendCommand}
+              attachments={files}
+              centered={true}
+              workspaceSlug={workspace?.slug}
+              threadSlug={threadSlug}
+            />
+            <QuickActions
+              hasAvailableWorkspace={!!workspace}
+              onCreateAgent={() => navigate(paths.settings.agentSkills())}
+              onEditWorkspace={handleEditWorkspace}
+              onUploadDocument={() =>
+                document.getElementById("dnd-chat-file-uploader")?.click()
+              }
             />
           </div>
-        </DnDFileUploaderWrapper>
-      )}
+          <SuggestedMessages
+            suggestedMessages={workspace?.suggestedMessages}
+            sendCommand={sendCommand}
+          />
+        </div>
+      </DnDFileUploaderWrapper>
       <ChatTooltips />
     </div>
   );

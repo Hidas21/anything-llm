@@ -29,6 +29,7 @@ function getTabs(t, user) {
 }
 
 /**
+ * @param {Workspace} props.workspace - the workspace object
  * @param {boolean} props.showing
  * @param {function} props.setShowing
  * @param {function} props.sendCommand
@@ -36,6 +37,7 @@ function getTabs(t, user) {
  * @param {boolean} [props.centered] - when true, popup opens below the input
  */
 export default function ToolsMenu({
+  workspace,
   showing,
   setShowing,
   sendCommand,
@@ -140,13 +142,14 @@ export default function ToolsMenu({
           ))}
         </div>
 
-        <div className="flex flex-col gap-1 overflow-y-auto no-scroll flex-1 min-h-0">
+        <div className="flex flex-col gap-1 overflow-y-auto no-scroll min-h-0">
           <ActiveTab
             sendCommand={sendCommand}
             setShowing={setShowing}
             promptRef={promptRef}
             highlightedIndex={highlightedIndex}
             registerItemCount={registerItemCount}
+            workspace={workspace}
           />
         </div>
       </div>

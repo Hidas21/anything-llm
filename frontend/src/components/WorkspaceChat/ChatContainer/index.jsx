@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef, useCallback } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import ChatHistory from "./ChatHistory";
 import { CLEAR_ATTACHMENTS_EVENT, DndUploaderContext } from "./DnDWrapper";
 import PromptInput, {
@@ -31,8 +31,6 @@ import { useTranslation } from "react-i18next";
 import paths from "@/utils/paths";
 import QuickActions from "@/components/lib/QuickActions";
 import SuggestedMessages from "@/components/lib/SuggestedMessages";
-import PromptLibraryV2Api from "@/models/promptLibraryV2";
-import InlineForm from "@/components/PromptLibraryV2/InlineForm";
 import TextSizeMenu from "./TextSizeMenu";
 import WorkspaceModelPicker from "./WorkspaceModelPicker";
 import SourcesSidebar, { SourcesSidebarProvider } from "./SourcesSidebar";
@@ -48,10 +46,6 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const { files, parseAttachments } = useContext(DndUploaderContext);
   const { chatHistoryRef } = useChatContainerQuickScroll();
   const pendingMessageChecked = useRef(false);
-  const [showPromptLibrary, setShowPromptLibrary] = useState(false);
-  const [promptLibraries, setPromptLibraries] = useState([]);
-  const [librariesLoading, setLibrariesLoading] = useState(false);
-  const pendingPromptRef = useRef(null);
 
   const { listening, resetTranscript } = useSpeechRecognition({
     clearTranscriptOnListen: true,
@@ -142,7 +136,6 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     history = [],
     attachments = [],
     writeMode = "replace",
-    silent = false,
   } = {}) => {
     // If we are not auto-submitting, we can just emit the text to the prompt input.
     if (!autoSubmit) {
@@ -190,8 +183,11 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     } else {
       prevChatHistory = [
         ...chatHistory,
-        // silent=true: skip the user bubble, only show the assistant response
-        ...(silent ? [] : [{ content: text, role: "user", attachments }]),
+        {
+          content: text,
+          role: "user",
+          attachments,
+        },
         {
           content: "",
           role: "assistant",
@@ -225,42 +221,6 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     }
   }, [workspace?.slug]);
 
-  // Prompt Library V2 — after the form closes, flush the pending prompt into the input
-  useEffect(() => {
-    if (!showPromptLibrary && pendingPromptRef.current) {
-      const prompt = pendingPromptRef.current;
-      pendingPromptRef.current = null;
-      sendCommand({ text: prompt, autoSubmit: false });
-    }
-  }, [showPromptLibrary]);
-
-  const openPromptLibrary = useCallback(
-    (workspaceSlug = null) => {
-      const slug = workspaceSlug ?? workspace?.slug;
-      setShowPromptLibrary(true);
-      setLibrariesLoading(true);
-      if (!slug) {
-        setPromptLibraries([]);
-        setLibrariesLoading(false);
-        return;
-      }
-      PromptLibraryV2Api.forWorkspace(slug)
-        .then((libs) => setPromptLibraries(Array.isArray(libs) ? libs : []))
-        .catch(() => setPromptLibraries([]))
-        .finally(() => setLibrariesLoading(false));
-    },
-    [workspace?.slug]
-  );
-
-  // Keep the custom event as a fallback for any older mount points.
-  useEffect(() => {
-    function handlePlV2Open(e) {
-      openPromptLibrary(e?.detail?.workspaceSlug ?? null);
-    }
-    window.addEventListener("prompt-library-v2:open", handlePlV2Open);
-    return () => window.removeEventListener("prompt-library-v2:open", handlePlV2Open);
-  }, [openPromptLibrary]);
-
   useEffect(() => {
     async function fetchReply() {
       const promptMessage =
@@ -271,11 +231,13 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
       // Override hook for new messages to now go to agents until the connection closes
       if (!!websocket) {
         if (!promptMessage || !promptMessage?.userMessage) return false;
+        const attachments = promptMessage?.attachments ?? parseAttachments();
         window.dispatchEvent(new CustomEvent(CLEAR_ATTACHMENTS_EVENT));
         websocket.send(
           JSON.stringify({
             type: "awaitingFeedback",
             feedback: promptMessage?.userMessage,
+            attachments,
           })
         );
         return;
@@ -398,17 +360,6 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const isEmpty =
     chatHistory.length === 0 && !sessionStorage.getItem(PENDING_HOME_MESSAGE);
 
-  // Shared InlineForm props
-  const inlineFormProps = {
-    libraries: promptLibraries,
-    loading: librariesLoading,
-    onClose: () => setShowPromptLibrary(false),
-    onGenerate: (prompt) => {
-      setShowPromptLibrary(false);
-      sendCommand({ text: prompt, autoSubmit: true, silent: true });
-    },
-  };
-
   if (isEmpty) {
     return (
       <div
@@ -418,45 +369,40 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         {isMobile && <SidebarMobileHeader />}
         <TextSizeMenu />
         <WorkspaceModelPicker workspaceSlug={workspace.slug} />
-        {showPromptLibrary ? (
-          <InlineForm {...inlineFormProps} />
-        ) : (
-          <DnDFileUploaderWrapper>
-            <div className="flex flex-col h-full w-full items-center justify-center">
-              <div className="flex flex-col items-center w-full max-w-[750px]">
-                <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
-                  {t("main-page.greeting")}
-                </h1>
-                <PromptInput
-                  submit={handleSubmit}
-                  isStreaming={loadingResponse}
-                  sendCommand={sendCommand}
-                  attachments={files}
-                  centered={true}
-                  workspaceSlug={workspace?.slug}
-                  onOpenPromptLibrary={openPromptLibrary}
-                />
-                <QuickActions
-                  hasAvailableWorkspace={!!workspace}
-                  onCreateAgent={() => navigate(paths.settings.agentSkills())}
-                  onEditWorkspace={() =>
-                    navigate(
-                      paths.workspace.settings.generalAppearance(workspace.slug)
-                    )
-                  }
-                  onUploadDocument={() =>
-                    document.getElementById("dnd-chat-file-uploader")?.click()
-                  }
-                />
-              </div>
-              <SuggestedMessages
-                suggestedMessages={workspace?.suggestedMessages}
+        <DnDFileUploaderWrapper>
+          <div className="flex flex-col h-full w-full items-center justify-center">
+            <div className="flex flex-col items-center w-full max-w-[750px]">
+              <h1 className="text-white text-xl md:text-2xl mb-11 text-center">
+                {t("main-page.greeting")}
+              </h1>
+              <PromptInput
+                workspace={workspace}
+                submit={handleSubmit}
+                isStreaming={loadingResponse}
                 sendCommand={sendCommand}
+                attachments={files}
+                centered={true}
               />
-              <ChatTooltips />
+              <QuickActions
+                hasAvailableWorkspace={!!workspace}
+                onCreateAgent={() => navigate(paths.settings.agentSkills())}
+                onEditWorkspace={() =>
+                  navigate(
+                    paths.workspace.settings.generalAppearance(workspace.slug)
+                  )
+                }
+                onUploadDocument={() =>
+                  document.getElementById("dnd-chat-file-uploader")?.click()
+                }
+              />
             </div>
-          </DnDFileUploaderWrapper>
-        )}
+            <SuggestedMessages
+              suggestedMessages={workspace?.suggestedMessages}
+              sendCommand={sendCommand}
+            />
+          </div>
+        </DnDFileUploaderWrapper>
+        <ChatTooltips />
       </div>
     );
   }
@@ -471,37 +417,31 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         <div className="flex-1 min-w-0 transition-all duration-500 relative md:rounded-[16px] bg-zinc-900 light:bg-white text-white light:text-slate-900 h-full overflow-hidden border-none light:border-solid light:border light:border-theme-modal-border">
           {isMobile && <SidebarMobileHeader />}
           <WorkspaceModelPicker workspaceSlug={workspace.slug} />
-          {showPromptLibrary ? (
-            <div className="flex flex-col h-full w-full overflow-hidden">
-              <InlineForm {...inlineFormProps} />
-            </div>
-          ) : (
-            <DnDFileUploaderWrapper>
-              <div className="flex flex-col h-full w-full pb-20 md:pb-0">
-                <div className="contents">
-                  <MetricsProvider>
-                    <ChatHistory
-                      ref={chatHistoryRef}
-                      history={chatHistory}
-                      workspace={workspace}
-                      sendCommand={sendCommand}
-                      updateHistory={setChatHistory}
-                      regenerateAssistantMessage={regenerateAssistantMessage}
-                    />
-                  </MetricsProvider>
-                  <PromptInput
-                    submit={handleSubmit}
-                    isStreaming={loadingResponse}
+          <DnDFileUploaderWrapper>
+            <div className="flex flex-col h-full w-full pb-20 md:pb-0">
+              <div className="contents">
+                <MetricsProvider>
+                  <ChatHistory
+                    ref={chatHistoryRef}
+                    history={chatHistory}
+                    workspace={workspace}
                     sendCommand={sendCommand}
-                    attachments={files}
-                    centered={false}
-                    workspaceSlug={workspace?.slug}
-                    onOpenPromptLibrary={openPromptLibrary}
+                    updateHistory={setChatHistory}
+                    regenerateAssistantMessage={regenerateAssistantMessage}
+                    websocket={websocket}
                   />
-                </div>
+                </MetricsProvider>
+                <PromptInput
+                  workspace={workspace}
+                  submit={handleSubmit}
+                  isStreaming={loadingResponse}
+                  sendCommand={sendCommand}
+                  attachments={files}
+                  centered={false}
+                />
               </div>
-            </DnDFileUploaderWrapper>
-          )}
+            </div>
+          </DnDFileUploaderWrapper>
           <ChatTooltips />
         </div>
         <SourcesSidebar />

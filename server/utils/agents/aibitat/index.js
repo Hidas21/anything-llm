@@ -4,6 +4,7 @@ const { APIError } = require("./error.js");
 const Providers = require("./providers/index.js");
 const { Telemetry } = require("../../../models/telemetry.js");
 const { v4 } = require("uuid");
+const { ToolReranker } = require("./utils/toolReranker.js");
 
 /**
  * AIbitat is a class that manages the conversation between agents.
@@ -32,7 +33,7 @@ class AIbitat {
   defaultInterrupt;
   maxRounds;
   _chats;
-
+  _trackedChatId = null;
   agents = new Map();
   channels = new Map();
   functions = new Map();
@@ -44,12 +45,42 @@ class AIbitat {
    */
   _pendingCitations = [];
 
+  /**
+   * Buffer for attachments (images) collected during tool execution.
+   * Tools can call addToolAttachment() to queue images for injection into the conversation.
+   * These are injected as a user message so all providers' existing attachment handling works.
+   * @type {Array<{name: string, mime: string, contentString: string}>}
+   */
+  _toolAttachments = [];
+
+  /**
+   * Get the default maximum number of tools an agent can chain for a single response.
+   * @returns {number}
+   */
+  static defaultMaxToolCalls() {
+    const envMaxToolCalls = parseInt(process.env.AGENT_MAX_TOOL_CALLS, 10);
+    return !isNaN(envMaxToolCalls) && envMaxToolCalls > 0
+      ? envMaxToolCalls
+      : 10;
+  }
+
+  /**
+   * Create a new AIbitat instance.
+   * @param {Object} props - The properties for the AIbitat instance.
+   * @param {Array} props.chats - [default: []] The chat history between agents and channels.
+   * @param {string} props.interrupt - [default: "NEVER"] The interrupt mode for the AIbitat instance.
+   * @param {number} props.maxRounds - [default: 100] The maximum number of rounds for the AIbitat instance.
+   * @param {number} props.maxToolCalls - [default: AIbitat.defaultMaxToolCalls()] The maximum number of tools an agent can chain for a single response.
+   * @param {string} props.provider - [default: "openai"] The provider for the AIbitat instance.
+   * @param {Object} props.handlerProps - The handler properties for the AIbitat instance.
+   * @param {Object} rest - The rest of the properties for the AIbitat instance.
+   */
   constructor(props = {}) {
     const {
       chats = [],
       interrupt = "NEVER",
       maxRounds = 100,
-      maxToolCalls = 10,
+      maxToolCalls = AIbitat.defaultMaxToolCalls(),
       provider = "openai",
       handlerProps = {}, // Inherited props we can spread so aibitat can access.
       ...rest
@@ -81,6 +112,44 @@ class AIbitat {
   use(plugin) {
     plugin.setup(this);
     return this;
+  }
+
+  /**
+   * Register a new chat ID for tracking for a given conversation exchange
+   * @param {number} chatId - The ID of the chat to register.
+   */
+  registerChatId(chatId = null) {
+    if (!chatId) return;
+    this._trackedChatId = Number(chatId);
+  }
+
+  /**
+   * Get the tracked chat ID for a given conversation exchange
+   * @returns {number|null} The ID of the chat to register.
+   */
+  get trackedChatId() {
+    return this._trackedChatId ?? null;
+  }
+
+  /**
+   * Clear the tracked chat ID for a given conversation exchange
+   */
+  clearTrackedChatId() {
+    this._trackedChatId = null;
+  }
+
+  /**
+   * Emit the tracked chat ID to the frontend via the websocket
+   * plugin (assumed to be attached).
+   * @param {string} [uuid] - The message UUID to associate with this chatId
+   */
+  emitChatId(uuid = null) {
+    if (!this.trackedChatId || !uuid) return null;
+    this.socket?.send?.("reportStreamEvent", {
+      type: "chatId",
+      uuid,
+      chatId: this.trackedChatId,
+    });
   }
 
   /**
@@ -116,6 +185,28 @@ class AIbitat {
    */
   clearCitations() {
     this._pendingCitations = [];
+  }
+
+  /**
+   * Add an attachment (image) from a tool to be injected into the conversation.
+   * The attachment will be added as a user message so the model can "see" it.
+   * This leverages existing provider attachment handling for user messages.
+   * @param {{name: string, mime: string, contentString: string}} attachment - The attachment object with name, mime type, and base64 data URL
+   */
+  addToolAttachment(attachment) {
+    if (!attachment || !attachment.contentString) return;
+    this._toolAttachments.push(attachment);
+  }
+
+  /**
+   * Collect and clear any pending tool attachments.
+   * @returns {Array<{name: string, mime: string, contentString: string}>} The collected attachments
+   */
+  collectToolAttachments() {
+    if (this._toolAttachments.length === 0) return [];
+    const attachments = [...this._toolAttachments];
+    this._toolAttachments = [];
+    return attachments;
   }
 
   /**
@@ -534,9 +625,7 @@ class AIbitat {
       {
         role: "user",
         content: `You are in a role play game. The following roles are available:
-${availableNodes
-  .map((node) => `@${node}: ${this.getAgentConfig(node).role}`)
-  .join("\n")}.
+${availableNodes.map((node) => `@${node}: ${this.getAgentConfig(node).role}`).join("\n")}.
 
 Read the following conversation.
 
@@ -575,6 +664,27 @@ Only return the role.
   }
 
   /**
+   * Extract the user's prompt from the messages array for tool reranking.
+   * Gets the content of the last user message.
+   * @param {Array} messages - Array of chat messages
+   * @returns {string|null} The user's prompt or null if not found
+   */
+  #extractUserPrompt(messages) {
+    if (!messages || !Array.isArray(messages)) return null;
+
+    // Find the last user message
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg.role === "user" && msg.content) {
+        return typeof msg.content === "string"
+          ? msg.content
+          : JSON.stringify(msg.content);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Check if the chat has reached the maximum number of rounds.
    */
   hasReachedMaximumRounds(from = "", to = "") {
@@ -606,10 +716,22 @@ ${this.getHistory({ to: route.to })
     }
 
     // This is normal chat between user<->agent
-    return this.getHistory(route).map((c) => ({
-      content: c.content,
-      role: c.from === route.to ? "user" : "assistant",
-    }));
+    // Include attachments if present (for vision/multimodal support)
+    return this.getHistory(route).map((c) => {
+      const message = {
+        content: c.content,
+        role: c.from === route.to ? "user" : "assistant",
+      };
+      // Pass attachments through for user messages that have them
+      if (
+        c.attachments &&
+        c.attachments.length > 0 &&
+        message.role === "user"
+      ) {
+        message.attachments = c.attachments;
+      }
+      return message;
+    });
   }
 
   /**
@@ -626,6 +748,24 @@ ${this.getHistory({ to: route.to })
   async reply(route) {
     const fromConfig = this.getAgentConfig(route.from);
     const chatHistory = this.getOrFormatNodeChatHistory(route);
+
+    // Fetch fresh parsed file context and inject into the last user message
+    if (this.fetchParsedFileContext) {
+      const parsedContext = await this.fetchParsedFileContext();
+      if (parsedContext) {
+        // Find the last user message and append context to it
+        for (let i = chatHistory.length - 1; i >= 0; i--) {
+          if (chatHistory[i].role === "user") {
+            chatHistory[i] = {
+              ...chatHistory[i],
+              content: chatHistory[i].content + parsedContext,
+            };
+            break;
+          }
+        }
+      }
+    }
+
     const messages = [
       {
         content: fromConfig.role,
@@ -635,9 +775,29 @@ ${this.getHistory({ to: route.to })
     ];
 
     // get the functions that the node can call
-    const functions = fromConfig.functions
+    let functions = fromConfig.functions
       ?.map((name) => this.functions.get(this.#parseFunctionName(name)))
       .filter((a) => !!a);
+
+    // Rerank tools based on user prompt if enabled
+    if (ToolReranker.isEnabled() && functions?.length) {
+      const toolReranker = new ToolReranker();
+      const userPrompt = this.#extractUserPrompt(messages);
+      if (userPrompt)
+        functions = await toolReranker.rerank(userPrompt, functions);
+    } else {
+      if (functions?.length > ToolReranker.defaultTopN) {
+        this.handlerProps.log?.(
+          `
+
+\x1b[44m[HINT]\x1b[0m: You are injecting \x1b[0;93m${functions.length} tools\x1b[0m into every request.
+Consider enabling \x1b[0;93mIntelligent Skill Selection\x1b[0m to reduce token usage from tool call bloat by up to \x1b[0;93m80% per request\x1b[0m.
+https://docs.anythingllm.com/agent/intelligent-tool-selection
+
+`
+        );
+      }
+    }
 
     const provider = this.getProviderForConfig({
       ...this.defaultProvider,
@@ -675,6 +835,25 @@ ${this.getHistory({ to: route.to })
   }
 
   /**
+   * Wrapper for provider calls that catches errors and converts them to APIError.
+   * This ensures provider errors are properly surfaced to the user instead of crashing.
+   *
+   * @param {Function} providerCall - Async function that calls the provider
+   * @returns {Promise<any>} - The result of the provider call
+   * @throws {APIError} - If the provider call fails
+   */
+  async #safeProviderCall(providerCall) {
+    try {
+      return await providerCall();
+    } catch (error) {
+      console.error(`[AIbitat] Provider error: ${error.message}`, {
+        hide_meta: true,
+      });
+      throw new APIError(`The agent model failed to respond: ${error.message}`);
+    }
+  }
+
+  /**
    * Handle the async (streaming) execution of the provider
    * with tool calls.
    *
@@ -696,38 +875,24 @@ ${this.getHistory({ to: route.to })
       this?.socket?.send(type, data);
     };
 
-    /** @type {{ functionCall: { name: string, arguments: string }, textResponse: string, uuid: string }} */
-    const completionStream = await provider.stream(
-      messages,
-      functions,
-      eventHandler
+    /** @type {{ functionCall: { name: string, arguments: string }, textResponse: string }} */
+    const completionStream = await this.#safeProviderCall(() =>
+      provider.stream(messages, functions, eventHandler)
     );
 
     if (completionStream.functionCall) {
-      if (depth >= this.maxToolCalls) {
-        this.handlerProps?.log?.(
-          `[warning]: Maximum tool call limit (${this.maxToolCalls}) reached. Making final response without tools.`
-        );
-        this?.introspect?.(
-          `Maximum tool call limit (${this.maxToolCalls}) reached. Generating a final response from what I have so far.`
-        );
-
-        const finalStream = await provider.stream(messages, [], eventHandler);
-        const finalUuid = finalStream?.uuid || v4();
-        eventHandler?.("reportStreamEvent", {
-          type: "usageMetrics",
-          uuid: finalUuid,
-          metrics: provider.getUsage(),
-        });
-        this?.flushCitations?.(finalUuid);
-        const finalResponse =
-          finalStream?.textResponse ||
-          "I reached the maximum number of tool calls allowed for a single response. Here is what I have so far based on the tools I was able to run.";
-        return finalResponse;
-      }
-
       const { name, arguments: args } = completionStream.functionCall;
       const fn = this.functions.get(name);
+      const reachedToolLimit = depth >= this.maxToolCalls;
+
+      if (reachedToolLimit) {
+        this.handlerProps?.log?.(
+          `[warning]: Maximum tool call limit (${this.maxToolCalls}) reached. Executing final tool call then generating response.`
+        );
+        this?.introspect?.(
+          `Maximum tool call limit (${this.maxToolCalls}) reached. After this tool I will generate a final response.`
+        );
+      }
 
       if (!fn) {
         return await this.handleAsyncExecution(
@@ -741,7 +906,7 @@ ${this.getHistory({ to: route.to })
               originalFunctionCall: completionStream.functionCall,
             },
           ],
-          functions,
+          reachedToolLimit ? [] : functions,
           byAgent,
           depth + 1
         );
@@ -789,21 +954,36 @@ ${this.getHistory({ to: route.to })
           metrics: provider.getUsage(),
         });
         this?.flushCitations?.(directOutputUUID);
+        this?.emitChatId?.(directOutputUUID);
         return result;
+      }
+
+      const toolAttachments = this.collectToolAttachments();
+      const newMessages = [
+        ...messages,
+        {
+          name,
+          role: "function",
+          content: result,
+          originalFunctionCall: completionStream.functionCall,
+        },
+      ];
+
+      if (toolAttachments.length > 0) {
+        this.handlerProps?.log?.(
+          `[debug]: Injecting ${toolAttachments.length} image attachment(s) from tool result`
+        );
+        newMessages.push({
+          role: "user",
+          content: "[Attached image(s) from tool result]",
+          attachments: toolAttachments,
+        });
       }
 
       return await this.handleAsyncExecution(
         provider,
-        [
-          ...messages,
-          {
-            name,
-            role: "function",
-            content: result,
-            originalFunctionCall: completionStream.functionCall,
-          },
-        ],
-        functions,
+        newMessages,
+        reachedToolLimit ? [] : functions,
         byAgent,
         depth + 1
       );
@@ -816,6 +996,7 @@ ${this.getHistory({ to: route.to })
       metrics: provider.getUsage(),
     });
     this?.flushCitations?.(responseUuid);
+    this?.emitChatId?.(responseUuid);
     return completionStream?.textResponse;
   }
 
@@ -847,32 +1028,23 @@ ${this.getHistory({ to: route.to })
     };
 
     // get the chat completion
-    const completion = await provider.complete(messages, functions);
+    const completion = await this.#safeProviderCall(() =>
+      provider.complete(messages, functions)
+    );
 
     if (completion.functionCall) {
-      if (depth >= this.maxToolCalls) {
-        this.handlerProps?.log?.(
-          `[warning]: Maximum tool call limit (${this.maxToolCalls}) reached. Making final response without tools.`
-        );
-        this?.introspect?.(
-          `Maximum tool call limit (${this.maxToolCalls}) reached. Generating a final response from what I have so far.`
-        );
-
-        const finalCompletion = await provider.complete(messages, []);
-        eventHandler?.("reportStreamEvent", {
-          type: "usageMetrics",
-          uuid: msgUUID,
-          metrics: provider.getUsage(),
-        });
-        this?.flushCitations?.(msgUUID);
-        return (
-          finalCompletion?.textResponse ||
-          "I reached the maximum number of tool calls allowed for a single response. Here is what I have so far based on the tools I was able to run."
-        );
-      }
-
       const { name, arguments: args } = completion.functionCall;
       const fn = this.functions.get(name);
+      const reachedToolLimit = depth >= this.maxToolCalls;
+
+      if (reachedToolLimit) {
+        this.handlerProps?.log?.(
+          `[warning]: Maximum tool call limit (${this.maxToolCalls}) reached. Executing final tool call then generating response.`
+        );
+        this?.introspect?.(
+          `Maximum tool call limit (${this.maxToolCalls}) reached. After this tool I will generate a final response.`
+        );
+      }
 
       if (!fn) {
         return await this.handleExecution(
@@ -886,7 +1058,7 @@ ${this.getHistory({ to: route.to })
               originalFunctionCall: completion.functionCall,
             },
           ],
-          functions,
+          reachedToolLimit ? [] : functions,
           byAgent,
           depth + 1,
           msgUUID
@@ -926,18 +1098,32 @@ ${this.getHistory({ to: route.to })
         return result;
       }
 
+      const toolAttachments = this.collectToolAttachments();
+      const newMessages = [
+        ...messages,
+        {
+          name,
+          role: "function",
+          content: result,
+          originalFunctionCall: completion.functionCall,
+        },
+      ];
+
+      if (toolAttachments.length > 0) {
+        this.handlerProps?.log?.(
+          `[debug]: Injecting ${toolAttachments.length} image attachment(s) from tool result`
+        );
+        newMessages.push({
+          role: "user",
+          content: "[Attached image(s) from tool result]",
+          attachments: toolAttachments,
+        });
+      }
+
       return await this.handleExecution(
         provider,
-        [
-          ...messages,
-          {
-            name,
-            role: "function",
-            content: result,
-            originalFunctionCall: completion.functionCall,
-          },
-        ],
-        functions,
+        newMessages,
+        reachedToolLimit ? [] : functions,
         byAgent,
         depth + 1,
         msgUUID
@@ -950,6 +1136,7 @@ ${this.getHistory({ to: route.to })
       metrics: provider.getUsage(),
     });
     this?.flushCitations?.(msgUUID);
+    this?.emitChatId?.(msgUUID);
     return completion?.textResponse;
   }
 
@@ -959,9 +1146,10 @@ ${this.getHistory({ to: route.to })
    * Provide a feedback where it was interrupted if you want to.
    *
    * @param feedback The feedback to the interruption if any.
+   * @param attachments Optional attachments (images) to include with the feedback.
    * @returns
    */
-  async continue(feedback) {
+  async continue(feedback, attachments = []) {
     const lastChat = this._chats.at(-1);
     if (!lastChat || lastChat.state !== "interrupt") {
       throw new Error("No chat to continue");
@@ -981,6 +1169,7 @@ ${this.getHistory({ to: route.to })
         from,
         to,
         content: feedback,
+        ...(attachments?.length > 0 ? { attachments } : {}),
       };
 
       // register the message in the chat history

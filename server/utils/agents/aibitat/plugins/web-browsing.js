@@ -20,19 +20,21 @@ const webBrowsing = {
               .toString()
               .replace(/\B(?=(\d{3})+(?!\d))/g, ","),
           description:
-            "Searches for a given query using a search engine to get better results for the user query.",
+            "Search the internet for real-time information. Look online for current news, recent updates, latest changes, or any information not available locally. Browse the web to find answers about current events, prices, weather, or live data.",
           examples: [
             {
-              prompt: "Who won the world series today?",
-              call: JSON.stringify({ query: "Winner of today's world series" }),
+              prompt: "Look online for recent changes to AnythingLLM",
+              call: JSON.stringify({
+                query: "AnythingLLM recent changes updates",
+              }),
             },
             {
-              prompt: "What is AnythingLLM?",
-              call: JSON.stringify({ query: "AnythingLLM" }),
+              prompt: "Search the internet for the latest news",
+              call: JSON.stringify({ query: "latest news today" }),
             },
             {
-              prompt: "Current AAPL stock price",
-              call: JSON.stringify({ query: "AAPL stock price today" }),
+              prompt: "What's the current weather in NYC?",
+              call: JSON.stringify({ query: "current weather New York City" }),
             },
           ],
           parameters: {
@@ -78,6 +80,9 @@ const webBrowsing = {
               case "bing-search":
                 engine = "_bingWebSearch";
                 break;
+              case "baidu-search":
+                engine = "_baiduSearch";
+                break;
               case "serply-engine":
                 engine = "_serplyEngine";
                 break;
@@ -92,6 +97,9 @@ const webBrowsing = {
                 break;
               case "exa-search":
                 engine = "_exaSearch";
+                break;
+              case "perplexity-search":
+                engine = "_perplexitySearch";
                 break;
               default:
                 engine = "_duckDuckGoEngine";
@@ -599,6 +607,113 @@ const webBrowsing = {
             );
             return result;
           },
+          _baiduSearch: async function (query) {
+            if (!process.env.AGENT_BAIDU_SEARCH_API_KEY) {
+              this.super.introspect(
+                `${this.caller}: I can't use Baidu Search because the user has not defined the required API key.\nVisit: https://cloud.baidu.com/doc/qianfan-api/s/Wmbq4z7e5 to create the API key.`
+              );
+              return `Search is disabled and no content was found. This functionality is disabled because the user has not set it up yet.`;
+            }
+
+            this.super.introspect(
+              `${this.caller}: Using Baidu Search to search for "${
+                query.length > 100 ? `${query.slice(0, 100)}...` : query
+              }"`
+            );
+
+            const { response, error } = await fetch(
+              "https://qianfan.baidubce.com/v2/ai_search/web_search",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${process.env.AGENT_BAIDU_SEARCH_API_KEY}`,
+                  "X-Appbuilder-Authorization": `Bearer ${process.env.AGENT_BAIDU_SEARCH_API_KEY}`,
+                },
+                body: JSON.stringify({
+                  messages: [{ role: "user", content: query }],
+                  resource_type_filter: [{ type: "web", top_k: 10 }],
+                }),
+              }
+            )
+              .then(async (res) => {
+                if (res.ok) return res.json();
+
+                const body = await res.text().catch(() => "");
+                throw new Error(
+                  `${res.status} - ${res.statusText}. params: ${JSON.stringify({
+                    auth: this.middleTruncate(
+                      process.env.AGENT_BAIDU_SEARCH_API_KEY,
+                      5
+                    ),
+                    q: query,
+                    body: body.slice(0, 300),
+                  })}`
+                );
+              })
+              .then((data) => {
+                return { response: data, error: null };
+              })
+              .catch((e) => {
+                this.super.handlerProps.log(`Baidu Search Error: ${e.message}`);
+                return { response: null, error: e.message };
+              });
+
+            if (error)
+              return `There was an error searching for content. ${error}`;
+
+            if (
+              (response?.code || response?.message) &&
+              !response?.references
+            ) {
+              return `There was an error searching for content. ${response?.message || response?.code}`;
+            }
+
+            /**
+             * Normalize Baidu Search References to the expected search results format
+             * @param {Array} references - The references to normalize
+             * @returns {Array} The normalized references
+             */
+            function normalizeBaiduSearchReferences(references = []) {
+              if (!Array.isArray(references)) return [];
+
+              const seenLinks = new Set();
+              return references
+                .filter((reference) => {
+                  if (!reference) return false;
+                  const referenceType = String(
+                    reference.type || reference.resource_type || "web"
+                  ).toLowerCase();
+                  return referenceType === "web";
+                })
+                .map((reference) => {
+                  const title = String(
+                    reference.title || reference.web_anchor || ""
+                  ).trim();
+                  const link = String(reference.url || "").trim();
+                  const snippet = String(
+                    reference.snippet || reference.content || ""
+                  ).trim();
+
+                  if (!title || !link || seenLinks.has(link)) return null;
+                  seenLinks.add(link);
+
+                  return { title, link, snippet };
+                })
+                .filter(Boolean);
+            }
+
+            const data = normalizeBaiduSearchReferences(response?.references);
+            if (data.length === 0)
+              return `No information was found online for the search query.`;
+
+            this.reportSearchResultsCitations(data);
+            const result = JSON.stringify(data);
+            this.super.introspect(
+              `${this.caller}: I found ${data.length} results - reviewing the results now. (~${this.countTokens(result)} tokens)`
+            );
+            return result;
+          },
           _serplyEngine: async function (
             query,
             language = "en",
@@ -976,6 +1091,84 @@ const webBrowsing = {
             this.super.introspect(
               `${this.caller}: I found ${data.length} results - reviewing the results now. (~${this.countTokens(result)} tokens)`
             );
+            return result;
+          },
+
+          _perplexitySearch: async function (query) {
+            if (!process.env.AGENT_PERPLEXITY_API_KEY) {
+              this.super.introspect(
+                `${this.caller}: I can't use Perplexity searching because the user has not defined the required API key.\nVisit: [https://console.perplexity.ai](https://console.perplexity.ai) to create the API key.`
+              );
+              return `Search is disabled and no content was found. This functionality is disabled because the user has not set it up yet.`;
+            }
+
+            this.super.introspect(
+              `${this.caller}: Using Perplexity to search for "${
+                query.length > 100 ? `${query.slice(0, 100)}...` : query
+              }"`
+            );
+
+            const { response, error } = await fetch(
+              "https://api.perplexity.ai/search",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${process.env.AGENT_PERPLEXITY_API_KEY}`,
+                },
+                body: JSON.stringify({
+                  query: query,
+                  max_results: 5,
+                  max_tokens_per_page: 2048,
+                }),
+              }
+            )
+              .then((res) => {
+                if (res.ok) return res.json();
+                throw new Error(
+                  `${res.status} - ${res.statusText}. params: ${JSON.stringify({
+                    auth: this.middleTruncate(
+                      process.env.AGENT_PERPLEXITY_API_KEY,
+                      5
+                    ),
+                    q: query,
+                  })}`
+                );
+              })
+              .then((data) => {
+                return { response: data, error: null };
+              })
+              .catch((e) => {
+                this.super.handlerProps.log(
+                  `Perplexity Search Error: ${e.message}`
+                );
+                return { response: null, error: e.message };
+              });
+
+            if (error)
+              return `There was an error searching for content. ${error}`;
+
+            const data = [];
+            if (response.results) {
+              response.results.forEach((result) => {
+                data.push({
+                  title: result.title,
+                  link: result.url,
+                  snippet: result.snippet || "",
+                });
+              });
+            }
+
+            if (data.length === 0)
+              return "No information was found online for the search query.";
+
+            this.reportSearchResultsCitations(data);
+
+            const result = JSON.stringify(data);
+            this.super.introspect(
+              `${this.caller}: I found ${data.length} results - reviewing the results now. (~${this.countTokens(result)} tokens)`
+            );
+
             return result;
           },
         });

@@ -1,4 +1,4 @@
-﻿import { API_BASE } from "./constants";
+import { API_BASE } from "./constants";
 
 function applyOptions(path, options = {}) {
   let updatedPath = path;
@@ -52,17 +52,17 @@ export default {
   discord: () => {
     return "https://discord.com/invite/6UyHPeGZAC";
   },
-  docs: () => {
-    return "https://docs.AnythingLLM.com";
+  docs: (path = "") => {
+    return `https://docs.anythingllm.com${path}`;
   },
   chatModes: () => {
-    return "https://docs.AnythingLLM.com/features/chat-modes";
+    return "https://docs.anythingllm.com/features/chat-modes";
   },
   mailToMintplex: () => {
     return "mailto:team@mintplexlabs.com";
   },
   hosting: () => {
-    return "https://my.mintplexlabs.com/aio-checkout?product=AnythingLLM";
+    return "https://my.mintplexlabs.com/aio-checkout?product=anythingllm";
   },
   workspace: {
     chat: (slug, options = {}) => {
@@ -164,17 +164,14 @@ export default {
     mobile: () => {
       return `/settings/mobile-connections`;
     },
-    promptLibrary: () => {
-      return `/settings/prompt-library`;
-    },
-    promptLibraryV2: () => {
-      return `/settings/prompt-library-v2`;
-    },
     experimental: () => {
       return `/settings/beta-features`;
     },
     mobileConnections: () => {
       return `/settings/mobile-connections`;
+    },
+    telegram: () => {
+      return `/settings/external-connections/telegram`;
     },
   },
   agents: {
@@ -189,7 +186,7 @@ export default {
     website: () => {
       return import.meta.env.DEV
         ? `http://localhost:5173`
-        : `https://hub.AnythingLLM.com`;
+        : `https://hub.anythingllm.com`;
     },
     /**
      * View more items of a given type on the community hub.
@@ -216,17 +213,17 @@ export default {
       return `${this.website()}/me`;
     },
     noPrivateItems: () => {
-      return "https://docs.AnythingLLM.com/community-hub/faq#no-private-items";
+      return "https://docs.anythingllm.com/community-hub/faq#no-private-items";
     },
   },
 
-  // TODO: Migrate all docs.AnythingLLM.com links to the new docs.
+  // TODO: Migrate all docs.anythingllm.com links to the new docs.
   documentation: {
     mobileIntroduction: () => {
-      return "https://docs.AnythingLLM.com/mobile/overview";
+      return "https://docs.anythingllm.com/mobile/overview";
     },
     contextWindows: () => {
-      return "https://docs.AnythingLLM.com/chatting-with-documents/introduction#you-exceed-the-context-window---what-now";
+      return "https://docs.anythingllm.com/chatting-with-documents/introduction#you-exceed-the-context-window---what-now";
     },
   },
 

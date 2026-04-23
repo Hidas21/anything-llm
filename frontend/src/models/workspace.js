@@ -55,6 +55,15 @@ const Workspace = {
 
     return { workspace, message };
   },
+  removeQueuedEmbedding: async function (slug, filename) {
+    return fetch(`${API_BASE}/workspace/${slug}/embed-queue`, {
+      method: "DELETE",
+      body: JSON.stringify({ filename }),
+      headers: baseHeaders(),
+    })
+      .then((res) => res.json())
+      .catch(() => ({ success: false }));
+  },
   chatHistory: async function (slug) {
     const history = await fetch(`${API_BASE}/workspace/${slug}/chats`, {
       method: "GET",
@@ -567,6 +576,27 @@ const Workspace = {
         return { workspaces: [], threads: [] };
       });
     return response;
+  },
+
+  /**
+   * Checks if the agent command is available for a workspace
+   * by checking if the workspace's agent provider supports native tool calling.
+   *
+   * This can be model specific or enabled via ENV flag.
+   * @param {string} slug - workspace slug
+   * @returns {Promise<{showAgentCommand: boolean}>}
+   */
+  agentCommandAvailable: async function (slug = null) {
+    if (!slug) return { showAgentCommand: true };
+    return await fetch(
+      `${API_BASE}/workspace/${slug}/is-agent-command-available`,
+      { headers: baseHeaders() }
+    )
+      .then((res) => res.json())
+      .catch((e) => {
+        console.error(e);
+        return { showAgentCommand: true };
+      });
   },
 
   threads: WorkspaceThread,

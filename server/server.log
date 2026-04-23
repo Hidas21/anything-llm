@@ -37,3 +37,583 @@ prisma:info Starting a sqlite pool with 9 connections.
 Child process exited with code 0 and signal null
 Worker for job "cleanup-orphan-documents" exited with code 0 undefined
 [32m[Event Logged][0m - login_event
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node --trace-warnings index.js`[39m
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+[32m[nodemon] restarting due to changes...[39m
+$ node ./swagger/init.js
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+$ node ./swagger/init.js
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+The system cannot execute the specified program.
+node:internal/child_process:421
+    throw new ErrnoException(err, 'spawn');
+          ^
+
+Error: spawn UNKNOWN
+    at ChildProcess.spawn (node:internal/child_process:421:11)
+    at spawn (node:child_process:760:9)
+    at spawnCommand (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\nodemon\lib\spawn.js:51:17)
+    at Bus.<anonymous> (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\nodemon\lib\nodemon.js:233:13)
+    at Bus.emit (node:events:532:35)
+    at restartBus (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\nodemon\lib\monitor\watch.js:228:7)
+    at FSWatcher.filterAndRestart (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\nodemon\lib\monitor\watch.js:212:16)
+    at FSWatcher.emit (node:events:520:28)
+    at FSWatcher.emitWithAll (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\chokidar\index.js:540:8)
+    at FSWatcher._emit (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\chokidar\index.js:632:8) {
+  errno: -4094,
+  code: 'UNKNOWN',
+  syscall: 'spawn'
+}
+
+Node.js v22.5.1
+
+  #  Administrator:  C:\WINDOWS\system32\cmd.exe [23708]: char *__cdecl node::Realloc<char>(char *,unsigned __int64) at c:\ws\src\util-inl.h:274
+  #  Assertion failed: !(n > 0) || (ret != nullptr)
+
+----- Native stack trace -----
+
+
+<--- Last few GCs --->
+
+
+<--- JS stacktrace --->
+
+
+
+#
+# Fatal JavaScript out of memory: Committing semi space failed.
+#
+----- Native stack trace -----
+
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF655FC68BF 
+ 3: 00007FF657244216 
+ 4: 00007FF656CB4863 
+ 5: 00007FF656CA1656 
+ 6: 00007FF656AEB9B0 
+ 7: 00007FF656AA39B3 
+ 8: 00007FF656AF4A75 
+ 9: 00007FF656AE5302 
+10: 00007FF656AE0EF5 
+11: 00007FF656375CED 
+error Error: spawn UNKNOWN
+    at ChildProcess.spawn (node:internal/child_process:421:11)
+    at Object.spawn (node:child_process:760:9)
+    at C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:25734:24
+    at new Promise (<anonymous>)
+    at new F (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:5539:28)
+    at C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:25731:12
+    at run (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43186:7)
+    at BlockingQueue.maybePushConcurrencyQueue (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43201:7)
+    at BlockingQueue.shift (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43196:10)
+    at C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43140:15
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+
+<--- Last few GCs --->
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+error Command failed with exit code 3221225794.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF6560464D1 
+ 3: 00007FF655E68B1F 
+ 4: 00007FF655E66E0A 
+ 1: 00007FF6560DC9FB node::SetCppgcReference+16011
+ 2: 00007FF656048448 DSA_meth_get_flags+90776
+ 3: 00007FF656CB4811 v8::Isolate::ReportExternalAllocationLimitReached+65
+ 4: 00007FF656CA1656 v8::Function::Experimental_IsNopFunction+2918
+ 5: 00007FF656AEB9B0 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+31584
+ 6: 00007FF656AA39B3 v8::FixedArray::Length+131171
+ 7: 00007FF656AF4A75 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+68645
+ 8: 00007FF656AE5302 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+5298
+ 9: 00007FF656AE0EF5 v8::CpuProfileNode::GetScriptResourceNameStr+190789
+10: 00007FF656375CED BIO_ssl_shutdown+189
+ 5: 00007FF5F6C8FB64 
+
+----- JavaScript stack trace -----
+
+1: update (node:internal/crypto/hash:119:22)
+2: _moduleCompile (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\v8-compile-cache.js:221:8)
+3: Module._compile (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\v8-compile-cache.js:172:36)
+4: Module._extensions..js (node:internal/modules/cjs/loader:1588:10)
+5: Module.load (node:internal/modules/cjs/loader:1282:32)
+6: Module._load (node:internal/modules/cjs/loader:1098:12)
+7: traceSync (node:diagnostics_channel:315:14)
+8: wrapModuleLoad (node:internal/modules/cjs/loader:215:24)
+9: Module.require (node:internal/modules/cjs/loader:1304:12)
+10: require (node:internal/modules/helpers:123:16)
+
+
+error Command failed with exit code 3221225495.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\index.js:37
+<<<<<<< HEAD
+^^
+
+SyntaxError: Unexpected token '<<'
+    at wrapSafe (node:internal/modules/cjs/loader:1427:18)
+    at Module._compile (node:internal/modules/cjs/loader:1449:20)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1588:10)
+    at Module.load (node:internal/modules/cjs/loader:1282:32)
+    at Module._load (node:internal/modules/cjs/loader:1098:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:215:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:158:5)
+    at node:internal/main/run_main_module:30:49
+
+Node.js v22.5.1
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+
+<--- Last few GCs --->
+
+[24372:00000199E56E1000]     1874 ms: Scavenge 27.7 (29.3) -> 27.4 (32.1) MB, pooled: 0 MB, 1.18 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[24372:00000199E56E1000]     2297 ms: Scavenge 30.2 (33.1) -> 29.4 (38.1) MB, pooled: 0 MB, 1.43 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[24372:00000199E56E1000]     3150 ms: Scavenge 33.5 (38.6) -> 32.1 (39.8) MB, pooled: 0 MB, 2.21 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF656048448 
+ 3: 00007FF656CB4811 
+ 4: 00007FF656CA1656 
+ 5: 00007FF656763DAE 
+ 6: 00007FF656694410 
+ 7: 00007FF656A1D4B0 
+ 8: 00007FF656A27029 
+ 9: 00007FF656A31257 
+10: 00007FF656A29D6A 
+11: 00007FF656A2D2B6 
+12: 00007FF656A33EA8 
+13: 00007FF656A30467 
+14: 00007FF656A29D6A 
+15: 00007FF656A33525 
+16: 00007FF656A2A357 
+17: 00007FF656A2A214 
+18: 00007FF656A3045A 
+19: 00007FF656A29D6A 
+20: 00007FF656A2DB03 
+21: 00007FF656A302C7 
+22: 00007FF656A29D6A 
+23: 00007FF656A33525 
+24: 00007FF656A2A357 
+25: 00007FF656A2A214 
+26: 00007FF656A3045A 
+27: 00007FF656A29D6A 
+28: 00007FF656A33525 
+29: 00007FF656A2A357 
+30: 00007FF656A2A214 
+31: 00007FF656A3045A 
+32: 00007FF656A29D6A 
+33: 00007FF656A30567 
+34: 00007FF656A29D6A 
+35: 00007FF656A33525 
+36: 00007FF656A28022 
+37: 00007FF656A27C78 
+38: 00007FF656A17988 
+39: 00007FF656C1AE68 
+40: 00007FF656C13EF8 
+41: 00007FF656C175B9 
+42: 00007FF656C16F1A 
+43: 00007FF6567D7677 
+44: 00007FF656D6FB6E 
+45: 00007FF656CD1CCF 
+46: 00007FF656CD02D2 
+47: 00007FF656CD02D2 
+48: 00007FF656D12C01 
+49: 00007FF5D941C519 
+error Command failed with exit code 3221225773.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+
+<--- Last few GCs --->
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221225794.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+ 1: 00007FF6560DC9FB node::SetCppgcReference+16011
+ 2: 00007FF656048448 DSA_meth_get_flags+90776
+ 3: 00007FF656CB4811 v8::Isolate::ReportExternalAllocationLimitReached+65
+ 4: 00007FF656CA1656 v8::Function::Experimental_IsNopFunction+2918
+ 5: 00007FF656AEB9B0 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+31584
+ 6: 00007FF656AA39B3 v8::FixedArray::Length+131171
+ 7: 00007FF656AF4A75 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+68645
+ 8: 00007FF656AE5302 v8::internal::StrongRootAllocatorBase::StrongRootAllocatorBase+5298
+ 9: 00007FF656AE0EF5 v8::CpuProfileNode::GetScriptResourceNameStr+190789
+10: 00007FF656375CED BIO_ssl_shutdown+189
+11: 7FF8000000000000 
+error Command failed with exit code 3221225773.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ node ./swagger/init.js
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 134.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+$ node ./swagger/init.js
+
+
+#
+# Fatal process out of memory: Zone
+#
+----- Native stack trace -----
+
+
+
+#
+# Fatal process out of memory: Zone
+#
+----- Native stack trace -----
+
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF655FC68BF 
+ 3: 00007FF657244216 
+ 4: 00007FF656CA1461 
+ 5: 00007FF656763DAE 
+ 6: 00007FF657580EFB 
+ 7: 00007FF6575814DC 
+ 8: 00007FF6575808CE 
+ 9: 00007FF6573C4334 
+10: 00007FF657378022 
+11: 00007FF65737837B 
+12: 00007FF65738024C 
+13: 00007FF657379BDA 
+14: 00007FF656C1ADD4 
+15: 00007FF656BD3A8F 
+16: 00007FF656EA5DA5 
+17: 00007FF655FC91A9 
+18: 00007FF65613A77E 
+19: 00007FF65789A7AE 
+20: 00007FFC076BE8D7 
+21: 00007FFC08BCC40C 
+
+
+#
+# Fatal process out of memory: Zone
+#
+----- Native stack trace -----
+
+
+
+#
+# Fatal process out of memory: Zone
+#
+----- Native stack trace -----
+
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF655FC68BF 
+ 3: 00007FF657244216 
+ 4: 00007FF656CA1461 
+ 5: 00007FF656763DAE 
+ 6: 00007FF656630C99 
+ 7: 00007FF6566337DC 
+ 8: 00007FF65663083A 
+ 9: 00007FF656632CE7 
+10: 00007FF65668F7D9 
+11: 00007FF65666E150 
+12: 00007FF6566AFD5C 
+13: 00007FF6566B00FF 
+14: 00007FF656695391 
+15: 00007FF656C1ADD4 
+16: 00007FF65669689E 
+17: 00007FF656EA5DA5 
+18: 00007FF655FC91A9 
+19: 00007FF65613A77E 
+20: 00007FF65789A7AE 
+21: 00007FFC076BE8D7 
+22: 00007FFC08BCC40C 
+
+
+#
+# Fatal process out of memory: Zone
+#
+----- Native stack trace -----
+
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF655FC68BF 
+ 3: 00007FF657244216 
+ 4: 00007FF656CA1461 
+ 5: 00007FF656763DAE 
+ 6: 00007FF6572BB9CE 
+ 7: 00007FF6572BCE39 
+ 8: 00007FF6572C0924 
+ 9: 00007FF6572CA31B 
+10: 00007FF6572C9B81 
+11: 00007FF65666ACB6 
+12: 00007FF6566B0010 
+13: 00007FF656695391 
+14: 00007FF656C1ADD4 
+15: 00007FF65669689E 
+16: 00007FF656EA5DA5 
+17: 00007FF655FC91A9 
+18: 00007FF65613A77E 
+19: 00007FF65789A7AE 
+20: 00007FFC076BE8D7 
+21: 00007FFC08BCC40C 
+
+
+#
+# Fatal process out of memory: Zone
+#
+----- Native stack trace -----
+
+ 1: 00007FF6560DC9FB 
+ 2: 00007FF655FC68BF 
+ 3: 00007FF657244216 
+ 4: 00007FF656CA1461 
+ 5: 00007FF656763DAE 
+ 6: 00007FF6576B3541 
+ 7: 00007FF6576F3D88 
+ 8: 00007FF65737FD47 
+ 9: 00007FF657379BDA 
+10: 00007FF656C1ADD4 
+11: 00007FF656BD3A8F 
+12: 00007FF656EA5DA5 
+13: 00007FF655FC91A9 
+14: 00007FF65613A77E 
+15: 00007FF65789A7AE 
+16: 00007FFC076BE8D7 
+17: 00007FFC08BCC40C 
+
+<--- Last few GCs --->
+
+[20288:000001EBC2DA1000]      676 ms: Scavenge 4.4 (6.6) -> 3.9 (7.1) MB, pooled: 0 MB, 0.86 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[20288:000001EBC2DA1000]     1058 ms: Scavenge 5.8 (8.0) -> 5.1 (8.0) MB, pooled: 1 MB, 0.70 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+error Error: spawn UNKNOWN
+    at ChildProcess.spawn (node:internal/child_process:421:11)
+    at Object.spawn (node:child_process:760:9)
+    at C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:25734:24
+    at new Promise (<anonymous>)
+    at new F (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:5539:28)
+    at C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:25731:12
+    at run (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43186:7)
+    at BlockingQueue.maybePushConcurrencyQueue (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43201:7)
+    at BlockingQueue.shift (C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43196:10)
+    at C:\Users\alex.banhidi\AppData\Roaming\npm\node_modules\yarn\lib\cli.js:43140:15
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221225773.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221225773.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+ 1: 00007FF6560DC9FB node::SetCppgcReference+16011
+ 2: 00007FF656048448 DSA_meth_get_flags+90776
+ 3: 00007FF656CB4811 v8::Isolate::ReportExternalAllocationLimitReached+65
+ 4: 00007FF656CA1656 v8::Function::Experimental_IsNopFunction+2918
+ 5: 00007FF656763DAE v8::SnapshotCreator::GetIsolate+53294
+ 6: 00007FF65680F778 v8::base::CPU::has_idiva+17176
+ 7: 00007FF65680FCA9 v8::base::CPU::has_idiva+18505
+ 8: 00007FF6567FE4F7 v8::base::CPU::family+38343
+ 9: 00007FF6567FD022 v8::base::CPU::family+33010
+10: 00007FF6567FC459 v8::base::CPU::family+29993
+11: 00007FF6567FE4E9 v8::base::CPU::family+38329
+12: 00007FF6567FD022 v8::base::CPU::family+33010
+13: 00007FF6567FC459 v8::base::CPU::family+29993
+14: 00007FF6567FE599 v8::base::CPU::family+38505
+15: 00007FF6567FD022 v8::base::CPU::family+33010
+16: 00007FF6567FAD74 v8::base::CPU::family+24132
+17: 00007FF6567E02DD v8::PropertyDescriptor::value+6701
+18: 00007FF6567E074F v8::PropertyDescriptor::value+7839
+19: 00007FF6567E0DCA v8::PropertyDescriptor::value+9498
+20: 00007FF6567E1DBE v8::PropertyDescriptor::value+13582
+21: 00007FF6567E18CE v8::PropertyDescriptor::value+12318
+22: 00007FF6567E1330 v8::PropertyDescriptor::value+10880
+23: 00007FF6567BE732 v8::internal::Version::GetString+370226
+24: 00007FF5F6D2D5BA 
+error Command failed with exit code 2147483651.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221225773.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 2147483651.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 2147483651.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221225725.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 2147483651.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 134.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221226505.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+error Command failed with exit code 3221226505.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m

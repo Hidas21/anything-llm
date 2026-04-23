@@ -61,6 +61,7 @@ const {
 const { TemporaryAuthToken } = require("../models/temporaryAuthToken");
 const { SystemPromptVariables } = require("../models/systemPromptVariables");
 const { VALID_COMMANDS } = require("../utils/chats");
+const { AgentSkillWhitelist } = require("../models/agentSkillWhitelist");
 
 function systemEndpoints(app) {
   if (!app) return;
@@ -636,7 +637,7 @@ function systemEndpoints(app) {
           multi_user_mode: true,
         });
         await BrowserExtensionApiKey.migrateApiKeysToMultiUser(user.id);
-
+        await AgentSkillWhitelist.clearSingleUserWhitelist();
         await updateENV(
           {
             JWTSecret: process.env.JWT_SECRET || v4(),
@@ -1001,16 +1002,17 @@ function systemEndpoints(app) {
   app.post(
     "/system/generate-api-key",
     [validatedRequest],
-    async (_, response) => {
+    async (request, response) => {
       try {
         if (response.locals.multiUserMode) {
           return response.sendStatus(401).end();
         }
 
-        const { apiKey, error } = await ApiKey.create();
+        const { name = null } = reqBody(request);
+        const { apiKey, error } = await ApiKey.create(null, name);
         await EventLogs.logEvent(
           "api_key_created",
-          {},
+          { name: apiKey?.name },
           response?.locals?.user?.id
         );
         return response.status(200).json({

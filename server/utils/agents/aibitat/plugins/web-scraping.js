@@ -16,8 +16,12 @@ const webScraping = {
           name: this.name,
           controller: new AbortController(),
           description:
-            "Scrapes the content of a webpage or online resource from a provided URL.",
+            "Read and extract content from a specific webpage URL. Fetch the text from a website, get the contents of a link, or visit a URL to see what it says. Use when you have a specific web address to read.",
           examples: [
+            {
+              prompt: "Read that URL for me",
+              call: JSON.stringify({ url: "https://example.com" }),
+            },
             {
               prompt: "What is anythingllm.com about?",
               call: JSON.stringify({ url: "https://anythingllm.com" }),
@@ -45,13 +49,14 @@ const webScraping = {
               if (url) return await this.scrape(url);
               return "There is nothing we can do. This function call returns no information.";
             } catch (error) {
+              const errorMessage = error?.message ?? JSON.stringify(error);
               this.super.handlerProps.log(
-                `Web Scraping Error: ${error.message}`
+                `Web Scraping Error: ${errorMessage}`
               );
               this.super.introspect(
-                `${this.caller}: Web Scraping Error: ${error.message}`
+                `${this.caller}: Web Scraping Error: ${errorMessage}`
               );
-              return `There was an error while calling the function. No data or response was found. Let the user know this was the error: ${error.message}`;
+              return `There was an error while calling the function. No data or response was found. Let the user know this was the error: ${errorMessage}`;
             }
           },
 

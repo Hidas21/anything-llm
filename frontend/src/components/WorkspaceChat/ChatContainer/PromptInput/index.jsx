@@ -25,6 +25,7 @@ export const PROMPT_INPUT_EVENT = "set_prompt_input";
 const MAX_EDIT_STACK_SIZE = 100;
 
 /**
+ * @param {Workspace} props.workspace - workspace object
  * @param {function} props.submit - form submit handler
  * @param {boolean} props.isStreaming - disables input while streaming response
  * @param {function} props.sendCommand - handler for slash commands and agent mentions
@@ -35,6 +36,7 @@ const MAX_EDIT_STACK_SIZE = 100;
  * @param {(workspaceSlug: string | null) => void} [props.onOpenPromptLibrary] - open prompt library panel
  */
 export default function PromptInput({
+  workspace = {},
   submit,
   isStreaming,
   sendCommand,
@@ -45,6 +47,7 @@ export default function PromptInput({
   onOpenPromptLibrary = null,
 }) {
   const { t } = useTranslation();
+  const { showAgentCommand = true } = workspace ?? {};
   const { isDisabled } = useIsDisabled();
   const agentSessionActive = useIsAgentSessionActive();
   const [promptInput, setPromptInput] = useState("");
@@ -332,6 +335,7 @@ export default function PromptInput({
         >
           <div className="relative w-[95vw] md:w-[750px]">
             <ToolsMenu
+              workspace={workspace}
               showing={showTools}
               setShowing={setShowTools}
               sendCommand={sendCommand}
@@ -375,7 +379,7 @@ export default function PromptInput({
                       sendCommand={sendCommand}
                       promptInput={promptInput}
                       textareaRef={textareaRef}
-                      visible={!agentSessionActive}
+                      visible={!agentSessionActive & showAgentCommand}
                     />
                   </div>
                   <ToolsButton
