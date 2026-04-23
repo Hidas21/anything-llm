@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { X } from "@phosphor-icons/react";
 import Workspace from "@/models/workspace";
 import { TagsInput } from "react-tag-input-component";
@@ -308,7 +308,7 @@ export const PermittedDomains = ({ defaultValue = [] }) => {
         value={domains}
         onChange={handleChange}
         onBlur={handleBlur}
-        placeholder="https://mysite.com, https://anythingllm.com"
+        placeholder="https://mysite.com, https://AnythingLLM.com"
         classNames={{
           tag: "bg-theme-settings-input-bg light:bg-black/10 bg-blue-300/10 text-zinc-800",
           input:

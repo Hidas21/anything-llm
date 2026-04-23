@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import System from "../../../models/system";
 import { AUTH_TOKEN } from "../../../utils/constants";
 import paths from "../../../utils/paths";
@@ -81,7 +81,7 @@ export default function SingleUserAuth() {
               </h3>
             </div>
             <p className="text-zinc-400 light:text-zinc-600 text-sm text-center">
-              {t("login.sign-in", { appName: customAppName || "AnythingLLM" })}
+              {t("login.sign-in", { appName: customAppName || "HEPA AI" })}
             </p>
           </div>
         </div>

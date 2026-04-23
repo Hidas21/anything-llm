@@ -1,4 +1,4 @@
-import { X } from "@phosphor-icons/react";
+﻿import { X } from "@phosphor-icons/react";
 import ModalWrapper from "@/components/ModalWrapper";
 import BG from "./bg.png";
 import { QRCodeSVG } from "qrcode.react";
@@ -46,7 +46,7 @@ export default function MobileConnectModal({ isOpen, onClose }) {
               directly to this instance seamlessly.
             </p>
             <Link
-              to="https://play.google.com/store/apps/details?id=com.anythingllm"
+              to="https://play.google.com/store/apps/details?id=com.AnythingLLM"
               target="_blank"
             >
               <img

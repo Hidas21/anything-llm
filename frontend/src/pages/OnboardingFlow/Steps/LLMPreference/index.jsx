@@ -1,4 +1,4 @@
-import { MagnifyingGlass } from "@phosphor-icons/react";
+﻿import { MagnifyingGlass } from "@phosphor-icons/react";
 import { useEffect, useState, useRef } from "react";
 import OpenAiLogo from "@/media/llmprovider/openai.png";
 import GenericOpenAiLogo from "@/media/llmprovider/generic-openai.png";

@@ -1,4 +1,4 @@
-import CTAButton from "@/components/lib/CTAButton";
+﻿import CTAButton from "@/components/lib/CTAButton";
 import CommunityHubImportItemSteps from "../..";
 import showToast from "@/utils/toast";
 import paths from "@/utils/paths";
@@ -81,7 +81,7 @@ export default function AgentSkill({ item, settings, setStep }) {
             </p>
           )}
           <a
-            href="https://docs.anythingllm.com/community-hub/faq#verification"
+            href="https://docs.AnythingLLM.com/community-hub/faq#verification"
             target="_blank"
             className="text-xs font-mono text-blue-500 hover:underline"
             rel="noreferrer"

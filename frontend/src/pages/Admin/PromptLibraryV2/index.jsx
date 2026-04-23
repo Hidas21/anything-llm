@@ -68,18 +68,18 @@ export default function PromptLibraryV2Admin() {
       <div className="relative h-full w-full overflow-y-scroll">
         <div className="flex flex-col w-full px-1 md:pl-6 md:pr-[50px] md:py-6 py-16">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-lg font-medium text-white">Prompt Library</p>
-              <p className="text-xs text-theme-text-secondary mt-1">
-                Create structured prompt templates with required questions and variable injection.
-              </p>
-            </div>
+          <div className="w-full flex flex-col gap-y-1 pb-6 border-white/10 border-b-2">
+            <p className="text-lg font-bold text-white">Prompt Library</p>
+            <p className="text-xs text-theme-text-secondary">
+              Create structured prompt templates with required questions and variable injection.
+            </p>
+          </div>
+          <div className="w-full justify-end flex">
             <button
               onClick={() => setEditing({})}
-              className="flex items-center gap-x-1.5 px-3 py-2 rounded-lg bg-primary-button hover:bg-primary-button/80 text-white text-sm font-medium transition-colors"
+              className="flex items-center gap-x-2 text-xs px-4 font-semibold rounded-lg bg-primary-button hover:bg-secondary hover:text-white h-[34px] whitespace-nowrap text-zinc-950 mt-3 mr-0 mb-4 md:-mb-6 z-10"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" weight="bold" />
               New Library
             </button>
           </div>
@@ -92,9 +92,10 @@ export default function PromptLibraryV2Admin() {
               <p className="text-sm text-theme-text-secondary">No libraries yet.</p>
               <button
                 onClick={() => setEditing({})}
-                className="text-xs px-3 py-1.5 rounded border border-white/20 text-white hover:bg-white/10"
+                className="flex items-center gap-x-2 text-xs px-4 font-semibold rounded-lg bg-primary-button hover:bg-secondary hover:text-white h-[34px] whitespace-nowrap text-zinc-950"
               >
-                Create your first library
+                <Plus className="h-4 w-4" weight="bold" />
+                Create prompt template
               </button>
             </div>
           ) : (

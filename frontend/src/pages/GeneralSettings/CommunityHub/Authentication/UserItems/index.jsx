@@ -1,4 +1,4 @@
-import paths from "@/utils/paths";
+﻿import paths from "@/utils/paths";
 import HubItemCard from "../../Trending/HubItems/HubItemCard";
 import { useUserItems } from "../useUserItems";
 import { HubItemCardSkeleton } from "../../Trending/HubItems";

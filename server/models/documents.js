@@ -100,6 +100,7 @@ const Document = {
         docpath: path,
         workspaceId: workspace.id,
         metadata: JSON.stringify(metadata),
+        ...(userId ? { uploadedBy: userId } : {}),
       };
 
       const { vectorized, error } = await VectorDb.addDocumentToNamespace(

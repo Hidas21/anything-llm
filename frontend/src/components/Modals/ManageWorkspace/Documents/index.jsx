@@ -15,7 +15,7 @@ const MODEL_COSTS = {
   "text-embedding-3-large": 0.00000013, // $0.00013 / 1K tokens
 };
 
-export default function DocumentSettings({ workspace, systemSettings }) {
+export default function DocumentSettings({ workspace, systemSettings, user }) {
   const [highlightWorkspace, setHighlightWorkspace] = useState(false);
   const [availableDocs, setAvailableDocs] = useState({ items: [] });
   const [directoryLoading, setDirectoryLoading] = useState(true);
@@ -36,6 +36,7 @@ export default function DocumentSettings({ workspace, systemSettings }) {
     const documentsInWorkspace =
       currentWorkspace?.documents?.map((doc) => doc.docpath) || [];
 
+    const isWorkspaceManager = user?.role === "workspace_manager";
     const availableDocs = {
       ...(localFiles ?? {}),
       items: (localFiles?.items ?? []).map((folder) => {
@@ -45,7 +46,8 @@ export default function DocumentSettings({ workspace, systemSettings }) {
             items: folder.items.filter(
               (file) =>
                 file.type === "file" &&
-                !documentsInWorkspace.includes(`${folder.name}/${file.name}`)
+                !documentsInWorkspace.includes(`${folder.name}/${file.name}`) &&
+                (!isWorkspaceManager || file.uploadedBy === user?.id)
             ),
           };
         }
@@ -116,6 +118,34 @@ export default function DocumentSettings({ workspace, systemSettings }) {
     setDirectoryLoading(false);
     setWorkspaceLoading(false);
     setLoadingMessage("");
+  };
+
+  const removeItemFromMoved = (itemId) => {
+    const itemToReturn = movedItems.find((i) => i.id === itemId);
+    if (!itemToReturn) return;
+
+    let newAvailableDocs = JSON.parse(JSON.stringify(availableDocs));
+    let newWorkspaceDocs = JSON.parse(JSON.stringify(workspaceDocs));
+
+    // visszatesszük a bal oldalra
+    const folderIndex = newAvailableDocs.items.findIndex(
+      (f) => f.name === itemToReturn.folderName
+    );
+    if (folderIndex !== -1) {
+      newAvailableDocs.items[folderIndex].items.push(itemToReturn);
+    }
+
+    // kivesszük a jobb oldalról
+    newWorkspaceDocs.items = newWorkspaceDocs.items.map((folder) => ({
+      ...folder,
+      items: folder.items.filter((f) => f.id !== itemId),
+    }));
+
+    const newMovedItems = movedItems.filter((i) => i.id !== itemId);
+    setMovedItems(newMovedItems);
+    setAvailableDocs(newAvailableDocs);
+    setWorkspaceDocs(newWorkspaceDocs);
+    if (newMovedItems.length === 0) setHasChanges(false);
   };
 
   const moveSelectedItemsToWorkspace = () => {
@@ -224,6 +254,7 @@ export default function DocumentSettings({ workspace, systemSettings }) {
         saveChanges={updateWorkspace}
         embeddingCosts={embeddingsCost}
         movedItems={movedItems}
+        removeItemFromMoved={removeItemFromMoved}
       />
     </div>
   );

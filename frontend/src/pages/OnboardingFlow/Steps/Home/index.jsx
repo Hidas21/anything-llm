@@ -1,4 +1,4 @@
-import paths from "@/utils/paths";
+﻿import paths from "@/utils/paths";
 import LGroupImg from "./l_group.png";
 import RGroupImg from "./r_group.png";
 import LGroupImgLight from "./l_group-light.png";

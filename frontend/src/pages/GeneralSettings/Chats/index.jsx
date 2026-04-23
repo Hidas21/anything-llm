@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import Sidebar from "@/components/SettingsSidebar";
 import { isMobile } from "react-device-detect";
 import * as Skeleton from "react-loading-skeleton";
@@ -18,7 +18,7 @@ const exportOptions = {
     mimeType: "text/csv",
     fileExtension: "csv",
     filenameFunc: () => {
-      return `anythingllm-chats-${new Date().toLocaleDateString()}`;
+      return `AnythingLLM-chats-${new Date().toLocaleDateString()}`;
     },
   },
   json: {
@@ -26,7 +26,7 @@ const exportOptions = {
     mimeType: "application/json",
     fileExtension: "json",
     filenameFunc: () => {
-      return `anythingllm-chats-${new Date().toLocaleDateString()}`;
+      return `AnythingLLM-chats-${new Date().toLocaleDateString()}`;
     },
   },
   jsonl: {
@@ -34,7 +34,7 @@ const exportOptions = {
     mimeType: "application/jsonl",
     fileExtension: "jsonl",
     filenameFunc: () => {
-      return `anythingllm-chats-${new Date().toLocaleDateString()}-lines`;
+      return `AnythingLLM-chats-${new Date().toLocaleDateString()}-lines`;
     },
   },
   jsonAlpaca: {
@@ -42,7 +42,7 @@ const exportOptions = {
     mimeType: "application/json",
     fileExtension: "json",
     filenameFunc: () => {
-      return `anythingllm-chats-${new Date().toLocaleDateString()}-alpaca`;
+      return `AnythingLLM-chats-${new Date().toLocaleDateString()}-alpaca`;
     },
   },
 };

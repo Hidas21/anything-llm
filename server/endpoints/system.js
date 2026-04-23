@@ -2,6 +2,7 @@ process.env.NODE_ENV === "development"
   ? require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` })
   : require("dotenv").config();
 const { viewLocalFiles, normalizePath, isWithin } = require("../utils/files");
+const prisma = require("../utils/prisma");
 const { purgeDocument, purgeFolder } = require("../utils/files/purgeDocument");
 const { getVectorDbClass } = require("../utils/helpers");
 const { updateENV, dumpENV } = require("../utils/helpers/updateENV");
@@ -459,7 +460,7 @@ function systemEndpoints(app) {
 
   app.delete(
     "/system/remove-documents",
-    [validatedRequest, flexUserRoleValid([ROLES.admin, ROLES.manager])],
+    [validatedRequest, flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager])],
     async (request, response) => {
       try {
         const { names } = reqBody(request);
@@ -490,9 +491,25 @@ function systemEndpoints(app) {
   app.get(
     "/system/local-files",
     [validatedRequest, flexUserRoleValid([ROLES.admin, ROLES.manager, ROLES.workspace_manager])],
-    async (_, response) => {
+    async (request, response) => {
       try {
         const localFiles = await viewLocalFiles();
+        // Annotate each file with uploadedBy from DB
+        const allDocs = await prisma.workspace_documents.findMany({
+          select: { docpath: true, uploadedBy: true },
+        });
+        const uploadedByMap = {};
+        for (const doc of allDocs) uploadedByMap[doc.docpath] = doc.uploadedBy;
+        if (localFiles?.items) {
+          for (const folder of localFiles.items) {
+            if (folder.items) {
+              for (const file of folder.items) {
+                const docpath = `${folder.name}/${file.name}`;
+                file.uploadedBy = uploadedByMap[docpath] ?? null;
+              }
+            }
+          }
+        }
         response.status(200).json({ localFiles });
       } catch (e) {
         console.error(e.message, e);

@@ -133,6 +133,7 @@ function apiAdminEndpoints(app) {
 
       const newUserParams = reqBody(request);
       const { user: newUser, error } = await User.create(newUserParams);
+      if (!!newUser) await Workspace.new("My Workspace", newUser.id);
       response.status(newUser ? 200 : 400).json({ user: newUser, error });
     } catch (e) {
       console.error(e);

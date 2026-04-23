@@ -26,6 +26,7 @@ model workspace_documents {
   lastUpdatedAt        DateTime              @default(now())
   pinned               Boolean?              @default(false)
   watched              Boolean?              @default(false)
+  uploadedBy           Int?
   document_sync_queues document_sync_queues?
   workspace            workspaces            @relation(fields: [workspaceId], references: [id])
 }

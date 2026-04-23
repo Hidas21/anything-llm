@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import Sidebar from "@/components/SettingsSidebar";
 import { isMobile } from "react-device-detect";
 import Admin from "@/models/admin";
@@ -178,13 +178,13 @@ function SelectedFeatureComponent({ feature, settings, refresh }) {
 
 function FeatureVerification({ children }) {
   if (
-    !window.localStorage.getItem("anythingllm_tos_experimental_feature_set")
+    !window.localStorage.getItem("AnythingLLM_tos_experimental_feature_set")
   ) {
     function acceptTos(e) {
       e.preventDefault();
 
       window.localStorage.setItem(
-        "anythingllm_tos_experimental_feature_set",
+        "AnythingLLM_tos_experimental_feature_set",
         "accepted"
       );
       showToast(
@@ -261,10 +261,10 @@ function FeatureVerification({ children }) {
                     Access to any features requires approval of this modal. If
                     you would like to read more you can refer to{" "}
                     <a
-                      href="https://docs.anythingllm.com/beta-preview/overview"
+                      href="https://docs.AnythingLLM.com/beta-preview/overview"
                       className="underline text-blue-500"
                     >
-                      docs.anythingllm.com
+                      docs.AnythingLLM.com
                     </a>{" "}
                     or email{" "}
                     <a

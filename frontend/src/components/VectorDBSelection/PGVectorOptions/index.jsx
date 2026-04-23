@@ -1,4 +1,4 @@
-import { Info } from "@phosphor-icons/react";
+﻿import { Info } from "@phosphor-icons/react";
 import { Tooltip } from "react-tooltip";
 
 export default function PGVectorOptions({ settings }) {
@@ -78,7 +78,7 @@ export default function PGVectorOptions({ settings }) {
                 store the vectors.
                 <br />
                 <br />
-                By default, the table name is <code>anythingllm_vectors</code>.
+                By default, the table name is <code>AnythingLLM_vectors</code>.
                 <br />
                 <br />
                 <b>

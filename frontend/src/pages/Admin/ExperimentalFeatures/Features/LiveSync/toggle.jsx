@@ -1,4 +1,4 @@
-import System from "@/models/system";
+﻿import System from "@/models/system";
 import paths from "@/utils/paths";
 import showToast from "@/utils/toast";
 import { ArrowSquareOut } from "@phosphor-icons/react";
@@ -59,7 +59,7 @@ export default function LiveSyncToggle({ enabled = false, onToggle }) {
         <ul className="space-y-2">
           <li>
             <a
-              href="https://docs.anythingllm.com/beta-preview/active-features/live-document-sync"
+              href="https://docs.AnythingLLM.com/beta-preview/active-features/live-document-sync"
               target="_blank"
               className="text-sm text-blue-400 light:text-blue-500 hover:underline flex items-center gap-x-1"
               rel="noreferrer"

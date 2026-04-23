@@ -1,4 +1,4 @@
-import { API_BASE, fullApiUrl } from "@/utils/constants";
+﻿import { API_BASE, fullApiUrl } from "@/utils/constants";
 import { baseHeaders, safeJsonParse } from "@/utils/request";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import WorkspaceThread from "@/models/workspaceThread";
@@ -6,7 +6,7 @@ import { v4 } from "uuid";
 import { ABORT_STREAM_EVENT } from "@/utils/chat";
 
 const Workspace = {
-  workspaceOrderStorageKey: "anythingllm-workspace-order",
+  workspaceOrderStorageKey: "AnythingLLM-workspace-order",
   /** The maximum percentage of the context window that can be used for attachments */
   maxContextWindowLimit: 0.8,
 

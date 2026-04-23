@@ -1,4 +1,4 @@
-import { CaretDown, CaretUp, Plus, CaretLeft } from "@phosphor-icons/react";
+﻿import { CaretDown, CaretUp, Plus, CaretLeft } from "@phosphor-icons/react";
 import AnythingInfinityLogo from "@/media/logo/anything-llm-infinity.png";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -136,7 +136,7 @@ export default function HeaderMenu({
             </button>
           </div>
           <Link
-            to="https://docs.anythingllm.com/agent-flows/overview"
+            to="https://docs.AnythingLLM.com/agent-flows/overview"
             className="text-theme-text-secondary text-sm hover:underline hover:text-cta-button flex items-center gap-x-1 w-fit float-right"
           >
             view documentation &rarr;

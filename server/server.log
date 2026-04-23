@@ -1,0 +1,39 @@
+yarn run v1.22.22
+$ cross-env NODE_ENV=development nodemon --ignore documents --ignore vector-cache --ignore storage --ignore swagger --trace-warnings index.js
+[33m[nodemon] 2.0.22[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,json[39m
+[32m[nodemon] starting `node --trace-warnings index.js`[39m
+$ node ./swagger/init.js
+[36m[EncryptionManager][0m Loaded existing key & salt for encrypting arbitrary data.
+Swagger-autogen: [32m Success  [0m
+Swagger-autogen:  [32mPatched servers.url ✔[0m
+[35m[TokenManager][0m Initialized new TokenManager instance for model: gpt-3.5-turbo
+[35m[TokenManager][0m Returning existing instance for model: gpt-3.5-turbo
+(node:21348) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+    at node:punycode:3:9
+    at BuiltinModule.compileForInternalLoader (node:internal/bootstrap/realm:399:7)
+    at BuiltinModule.compileForPublicLoader (node:internal/bootstrap/realm:338:10)
+    at loadBuiltinModule (node:internal/modules/helpers:96:7)
+    at Module._load (node:internal/modules/cjs/loader:1070:17)
+    at TracingChannel.traceSync (node:diagnostics_channel:315:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:215:24)
+    at Module.require (node:internal/modules/cjs/loader:1304:12)
+    at require (node:internal/modules/helpers:123:16)
+    at Object.<anonymous> (C:\Users\alex.banhidi\Downloads\anythingllm\anything-llm-1\server\node_modules\whatwg-url\lib\url-state-machine.js:2:18)
+prisma:info Starting a sqlite pool with 9 connections.
+[33m[TELEMETRY STUBBED][0m Anonymous Telemetry stubbed in development.
+[36m[CommunicationKey][0m RSA key pair generated for signed payloads within AnythingLLM services.
+[36m[EncryptionManager][0m Loaded existing key & salt for encrypting arbitrary data.
+[36m[PushNotifications][0m Loaded existing VAPID keys!
+[36m[BackgroundWorkerService][0m Starting...
+[36m[BackgroundWorkerService][0m Service started with 1 jobs [ 'cleanup-orphan-documents' ]
+[36m[PushNotifications][0m Loaded 0 existing subscriptions.
+Primary server in HTTP mode listening on port 3001
+prisma:info Starting a sqlite pool with 9 connections.
+[33m[21348:21312][0m: No direct uploads path found - exiting.
+[33m[21348:21312][0m: No direct uploads path found - exiting. { service: 'bg-worker', origin: 'cleanup-orphan-documents' }
+Child process exited with code 0 and signal null
+Worker for job "cleanup-orphan-documents" exited with code 0 undefined
+[32m[Event Logged][0m - login_event

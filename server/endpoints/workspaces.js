@@ -389,6 +389,7 @@ function workspaceEndpoints(app) {
           ? await Workspace.getWithUser(user, { slug })
           : await Workspace.get({ slug });
 
+        if (!workspace) return response.sendStatus(400).end();
         response.status(200).json({ workspace });
       } catch (e) {
         console.error(e.message, e);
@@ -551,6 +552,11 @@ function workspaceEndpoints(app) {
     async function (request, response) {
       try {
         const { slug } = request.params;
+        const user = await userFromSession(request, response);
+        if (multiUserMode(response)) {
+          const workspace = await Workspace.getWithUser(user, { slug });
+          if (!workspace) return response.sendStatus(400).end();
+        }
         const suggestedMessages =
           await WorkspaceSuggestedMessages.getMessages(slug);
         response.status(200).json({ success: true, suggestedMessages });

@@ -1,4 +1,4 @@
-import { API_BASE, AUTH_TIMESTAMP, fullApiUrl } from "@/utils/constants";
+﻿import { API_BASE, AUTH_TIMESTAMP, fullApiUrl } from "@/utils/constants";
 import { baseHeaders, safeJsonParse } from "@/utils/request";
 import DataConnector from "./dataConnector";
 import LiveDocumentSync from "./experimental/liveSync";
@@ -7,11 +7,11 @@ import SystemPromptVariable from "./systemPromptVariable";
 
 const System = {
   cacheKeys: {
-    footerIcons: "anythingllm_footer_links",
-    supportEmail: "anythingllm_support_email",
-    customAppName: "anythingllm_custom_app_name",
-    canViewChatHistory: "anythingllm_can_view_chat_history",
-    deploymentVersion: "anythingllm_deployment_version",
+    footerIcons: "AnythingLLM_footer_links",
+    supportEmail: "AnythingLLM_support_email",
+    customAppName: "AnythingLLM_custom_app_name",
+    canViewChatHistory: "AnythingLLM_can_view_chat_history",
+    deploymentVersion: "AnythingLLM_deployment_version",
   },
   ping: async function () {
     return await fetch(`${API_BASE}/ping`)

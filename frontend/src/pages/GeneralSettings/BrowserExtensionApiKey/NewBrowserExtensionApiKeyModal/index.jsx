@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { X } from "@phosphor-icons/react";
 import BrowserExtensionApiKey from "@/models/browserExtensionApiKey";
 import { fullApiUrl, POPUP_BROWSER_EXTENSION_EVENT } from "@/utils/constants";

@@ -7,9 +7,12 @@ const { jsonrepair } = require("jsonrepair");
 const extract = require("extract-json-from-string");
 
 function reqBody(request) {
-  return typeof request.body === "string"
-    ? JSON.parse(request.body)
-    : request.body;
+  if (typeof request.body !== "string") return request.body ?? {};
+  try {
+    return JSON.parse(request.body);
+  } catch {
+    return {};
+  }
 }
 
 function queryParams(request) {

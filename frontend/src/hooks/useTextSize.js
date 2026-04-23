@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 
 export default function useTextSize() {
   const [textSize, setTextSize] = useState("normal");
@@ -16,7 +16,7 @@ export default function useTextSize() {
   };
 
   useEffect(() => {
-    const storedTextSize = window.localStorage.getItem("anythingllm_text_size");
+    const storedTextSize = window.localStorage.getItem("AnythingLLM_text_size");
     if (storedTextSize) {
       setTextSize(storedTextSize);
       setTextSizeClass(getTextSizeClass(storedTextSize));

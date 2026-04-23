@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import paths from "@/utils/paths";
 import useLogo from "@/hooks/useLogo";
 import {
@@ -441,7 +441,7 @@ function HoldToReveal({ children, holdForMs = 3_000 }) {
   let timeout = null;
   const [showing, setShowing] = useState(
     window.localStorage.getItem(
-      "anythingllm_experimental_feature_preview_unlocked"
+      "AnythingLLM_experimental_feature_preview_unlocked"
     )
   );
 
@@ -453,7 +453,7 @@ function HoldToReveal({ children, holdForMs = 3_000 }) {
         // Setting toastId prevents hook spam from holding control too many times or the event not detaching
         showToast("Experimental feature previews unlocked!");
         window.localStorage.setItem(
-          "anythingllm_experimental_feature_preview_unlocked",
+          "AnythingLLM_experimental_feature_preview_unlocked",
           "enabled"
         );
         window.removeEventListener("keypress", onPress);

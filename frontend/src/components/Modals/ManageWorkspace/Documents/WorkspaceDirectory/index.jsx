@@ -25,6 +25,7 @@ function WorkspaceDirectory({
   saveChanges,
   embeddingCosts,
   movedItems,
+  removeItemFromMoved,
 }) {
   const { t } = useTranslation();
   const [selectedItems, setSelectedItems] = useState({});
@@ -167,23 +168,36 @@ function WorkspaceDirectory({
                   movedItems={movedItems}
                   workspace={workspace}
                 >
-                  {({ item, folder }) => (
-                    <WorkspaceFileRow
-                      key={item.id}
-                      item={item}
-                      folderName={folder.name}
-                      workspace={workspace}
-                      setLoading={setLoading}
-                      setLoadingMessage={setLoadingMessage}
-                      fetchKeys={fetchKeys}
-                      hasChanges={hasChanges}
-                      movedItems={movedItems}
-                      selected={selectedItems[item.id]}
-                      toggleSelection={() => toggleSelection(item)}
-                      disableSelection={hasChanges}
-                      setSelectedItems={setSelectedItems}
-                    />
-                  )}
+                  {({ item, folder }) => {
+                    const isPending = movedItems.some((m) => m.id === item.id);
+                    return (
+                      <div key={item.id} className="relative group/row">
+                        <WorkspaceFileRow
+                          item={item}
+                          folderName={folder.name}
+                          workspace={workspace}
+                          setLoading={setLoading}
+                          setLoadingMessage={setLoadingMessage}
+                          fetchKeys={fetchKeys}
+                          hasChanges={hasChanges}
+                          movedItems={movedItems}
+                          selected={selectedItems[item.id]}
+                          toggleSelection={() => toggleSelection(item)}
+                          disableSelection={hasChanges}
+                          setSelectedItems={setSelectedItems}
+                        />
+                        {isPending && removeItemFromMoved && (
+                          <button
+                            onClick={() => removeItemFromMoved(item.id)}
+                            title="Visszavonás"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-red-400 hover:text-red-200 border-none bg-transparent opacity-0 group-hover/row:opacity-100 transition-opacity"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    );
+                  }}
                 </RenderFileRows>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

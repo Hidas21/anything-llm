@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import useUser from "@/hooks/useUser";
@@ -38,7 +38,7 @@ export default function WorkspaceModelPicker({ workspaceSlug = null }) {
   const [config, setConfig] = useState({ settings: {}, provider: null });
   const [refreshKey, setRefreshKey] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(
-    () => window.localStorage.getItem("anythingllm_sidebar_toggle") !== "closed"
+    () => window.localStorage.getItem("AnythingLLM_sidebar_toggle") !== "closed"
   );
 
   useEffect(() => {
