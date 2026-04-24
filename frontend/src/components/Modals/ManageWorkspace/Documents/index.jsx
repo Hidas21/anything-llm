@@ -70,7 +70,7 @@ export default function DocumentSettings({ workspace, systemSettings, user }) {
               (file) =>
                 file.type === "file" &&
                 !documentsInWorkspace.includes(`${folder.name}/${file.name}`) &&
-                (!isWorkspaceManager || file.uploadedBy == user?.id)
+                (!isWorkspaceManager || file.workspaceId == null || file.workspaceId === workspace.slug)
             ),
           };
         } else {

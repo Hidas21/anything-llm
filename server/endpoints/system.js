@@ -495,18 +495,19 @@ function systemEndpoints(app) {
     async (request, response) => {
       try {
         const localFiles = await viewLocalFiles();
-        // Annotate each file with uploadedBy from file_upload_hashes (upload-time tracking)
+        // Annotate each file with workspaceId from file_upload_hashes for access control
         const uploadHashes = await prisma.file_upload_hashes.findMany({
-          select: { hash: true, uploaded_by: true },
+          select: { filename: true, workspace_id: true },
         });
-        const uploadedByMap = {};
-        for (const h of uploadHashes) uploadedByMap[h.hash] = h.uploaded_by;
+        const workspaceIdMap = {};
+        for (const h of uploadHashes) {
+          if (h.filename) workspaceIdMap[h.filename] = h.workspace_id;
+        }
         if (localFiles?.items) {
           for (const folder of localFiles.items) {
             if (folder.items) {
               for (const file of folder.items) {
-                const docpath = `${folder.name}/${file.name}`;
-                file.uploadedBy = uploadedByMap[docpath] ?? null;
+                file.workspaceId = workspaceIdMap[file.name] ?? null;
               }
             }
           }
