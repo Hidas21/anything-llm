@@ -6,6 +6,7 @@ import paths from "@/utils/paths";
 import Preloader from "@/components/Preloader";
 import debounce from "lodash.debounce";
 import Workspace from "@/models/workspace";
+import System from "@/models/system";
 import { Tooltip } from "react-tooltip";
 
 const DEFAULT_SEARCH_RESULTS = {
@@ -20,7 +21,14 @@ export default function SearchBox({ user, showNewWsModal }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState(DEFAULT_SEARCH_RESULTS);
+  const [appName, setAppName] = useState("CognizenHub");
   const handleSearch = debounce(handleSearchDebounced, 500);
+
+  useEffect(() => {
+    System.fetchCustomAppName().then(({ appName }) => {
+      if (appName) setAppName(appName);
+    });
+  }, []);
 
   async function handleSearchDebounced(e) {
     try {
@@ -57,7 +65,7 @@ export default function SearchBox({ user, showNewWsModal }) {
         <input
           ref={searchRef}
           type="search"
-          placeholder={t("common.search")}
+          placeholder={`${appName} keresés...`}
           onChange={handleSearch}
           onReset={handleReset}
           onFocus={(e) => e.target.select()}

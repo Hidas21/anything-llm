@@ -1,6 +1,10 @@
-process.env.NODE_ENV === "development"
-  ? require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` })
-  : require("dotenv").config();
+if (process.env.NODE_ENV === "development") {
+  const fs = require("fs");
+  const devEnv = `.env.${process.env.NODE_ENV}`;
+  require("dotenv").config({ path: fs.existsSync(devEnv) ? devEnv : ".env" });
+} else {
+  require("dotenv").config();
+}
 
 require("./utils/logger")();
 const express = require("express");

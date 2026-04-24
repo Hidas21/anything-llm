@@ -155,7 +155,7 @@ const Workspace = {
     await fetchEventSource(`${API_BASE}/workspace/${slug}/stream-chat`, {
       method: "POST",
       body: JSON.stringify({ message, attachments }),
-      headers: baseHeaders(),
+      headers: { ...baseHeaders(), "Content-Type": "application/json" },
       signal: ctrl.signal,
       openWhenHidden: true,
       async onopen(response) {

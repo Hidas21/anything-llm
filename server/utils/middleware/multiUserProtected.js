@@ -7,7 +7,7 @@ const ROLES = {
   workspace_manager: "workspace_manager",
   default: "default",
 };
-const DEFAULT_ROLES = [ROLES.admin, ROLES.admin];
+const DEFAULT_ROLES = [ROLES.admin, ROLES.manager];
 
 /**
  * Explicitly check that single user mode is enabled as well as that the

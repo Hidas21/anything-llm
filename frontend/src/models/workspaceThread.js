@@ -109,7 +109,7 @@ const WorkspaceThread = {
       {
         method: "POST",
         body: JSON.stringify({ message, attachments }),
-        headers: baseHeaders(),
+        headers: { ...baseHeaders(), "Content-Type": "application/json" },
         signal: ctrl.signal,
         openWhenHidden: true,
         async onopen(response) {

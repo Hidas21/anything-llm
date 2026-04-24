@@ -53,30 +53,31 @@ const PromptReply = ({ uuid, reply, pending, error, sources = [] }) => {
 };
 
 function RenderAssistantChatContent({ message, messageId }) {
-  const contentRef = useRef("");
+  const spanRef = useRef(null);
   const thoughtChainRef = useRef(null);
 
-  useEffect(() => {
-    const thinking =
-      message.match(THOUGHT_REGEX_OPEN) && !message.match(THOUGHT_REGEX_CLOSE);
+  const thinking =
+    message.match(THOUGHT_REGEX_OPEN) && !message.match(THOUGHT_REGEX_CLOSE);
+  const completeThoughtChain = message.match(THOUGHT_REGEX_COMPLETE)?.[0];
+  const msgToRender = thinking
+    ? ""
+    : message.replace(THOUGHT_REGEX_COMPLETE, "");
 
+  useEffect(() => {
     if (thinking && thoughtChainRef.current) {
       thoughtChainRef.current.updateContent(message);
       return;
     }
-
-    const completeThoughtChain = message.match(THOUGHT_REGEX_COMPLETE)?.[0];
-    const msgToRender = message.replace(THOUGHT_REGEX_COMPLETE, "");
-
     if (completeThoughtChain && thoughtChainRef.current) {
       thoughtChainRef.current.updateContent(completeThoughtChain);
     }
-
-    contentRef.current = msgToRender;
+    if (spanRef.current) {
+      spanRef.current.innerHTML = DOMPurify.sanitize(
+        renderMarkdown(msgToRender)
+      );
+    }
   }, [message]);
 
-  const thinking =
-    message.match(THOUGHT_REGEX_OPEN) && !message.match(THOUGHT_REGEX_CLOSE);
   if (thinking)
     return (
       <ThoughtChainComponent
@@ -88,7 +89,7 @@ function RenderAssistantChatContent({ message, messageId }) {
 
   return (
     <div className="flex flex-col gap-y-1">
-      {message.match(THOUGHT_REGEX_COMPLETE) && (
+      {completeThoughtChain && (
         <ThoughtChainComponent
           ref={thoughtChainRef}
           content=""
@@ -96,9 +97,10 @@ function RenderAssistantChatContent({ message, messageId }) {
         />
       )}
       <span
+        ref={spanRef}
         className="break-words"
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(renderMarkdown(contentRef.current)),
+          __html: DOMPurify.sanitize(renderMarkdown(msgToRender)),
         }}
       />
     </div>

@@ -180,7 +180,7 @@ const System = {
   updateSystem: async (data) => {
     return await fetch(`${API_BASE}/system/update-env`, {
       method: "POST",
-      headers: baseHeaders(),
+      headers: { ...baseHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
@@ -354,6 +354,15 @@ const System = {
     return { email: supportEmail, error: null };
   },
 
+  fetchCustomPageTitle: async function () {
+    return await fetch(`${API_BASE}/system/custom-page-title`, {
+      method: "GET",
+      cache: "no-cache",
+    })
+      .then((res) => res.json())
+      .then(({ pageTitle }) => pageTitle ?? null)
+      .catch(() => null);
+  },
   fetchCustomAppName: async function () {
     const cache = window.localStorage.getItem(this.cacheKeys.customAppName);
     const { appName, lastFetched } = cache

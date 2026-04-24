@@ -734,6 +734,17 @@ function systemEndpoints(app) {
   });
 
   // No middleware protection in order to get this on the login page
+  app.get("/system/custom-page-title", async (_, response) => {
+    try {
+      const pageTitle =
+        (await SystemSettings.get({ label: "meta_page_title" }))?.value ?? null;
+      response.status(200).json({ pageTitle });
+    } catch (error) {
+      console.error("Error fetching custom page title:", error);
+      response.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/system/custom-app-name", async (_, response) => {
     try {
       const customAppName =

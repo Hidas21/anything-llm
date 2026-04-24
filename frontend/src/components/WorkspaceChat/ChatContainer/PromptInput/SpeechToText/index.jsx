@@ -33,8 +33,9 @@ export default function SpeechToText({ sendCommand }) {
   const { t } = useTranslation();
   function startSTTSession() {
     if (!isMicrophoneAvailable) {
+      console.error("[STT] Microphone not available — browser permission denied or no device.");
       alert(
-        "AnythingLLM does not have access to microphone. Please enable for this site to use this feature."
+        "Cognizen HUB nem fér hozzá a mikrofonhoz. Kérjük engedélyezze ezt az oldalt a böngésző beállításaiban."
       );
       return;
     }
@@ -118,7 +119,13 @@ export default function SpeechToText({ sendCommand }) {
     }
   }, [transcript, listening]);
 
-  if (!browserSupportsSpeechRecognition) return null;
+  if (!browserSupportsSpeechRecognition) {
+    console.warn("[STT] Browser does not support SpeechRecognition API — microphone button hidden.");
+    return null;
+  }
+
+  console.debug("[STT] state:", { browserSupportsSpeechRecognition, browserSupportsContinuousListening, isMicrophoneAvailable, listening });
+
   return (
     <div
       data-tooltip-id="tooltip-microphone-btn"

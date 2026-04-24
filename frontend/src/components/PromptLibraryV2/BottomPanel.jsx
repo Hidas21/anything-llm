@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { BookBookmark, X, ArrowFatLineRight } from "@phosphor-icons/react";
 import QuestionForm from "./QuestionForm";
 import { injectVariables, validateAnswers } from "./utils";
@@ -54,7 +55,7 @@ export default function BottomPanel({ libraries, onClose }) {
     onClose();
   }
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -152,6 +153,7 @@ export default function BottomPanel({ libraries, onClose }) {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

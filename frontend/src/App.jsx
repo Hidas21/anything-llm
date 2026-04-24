@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { I18nextProvider } from "react-i18next";
 import { AuthProvider } from "@/AuthContext";
@@ -15,9 +15,17 @@ import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 import ImageLightbox from "@/components/ImageLightbox";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorBoundaryFallback from "./components/ErrorBoundaryFallback";
+import System from "@/models/system";
 
 export default function App() {
   const location = useLocation();
+
+  useEffect(() => {
+    System.fetchCustomPageTitle().then((title) => {
+      if (title) document.title = title;
+    });
+  }, []);
+
   return (
     <ErrorBoundary
       FallbackComponent={ErrorBoundaryFallback}

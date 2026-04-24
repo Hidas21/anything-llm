@@ -52,9 +52,12 @@ function FileUploadProgressComponent({
           setIsDuplicate(true);
           setDuplicateInfo(data.original ?? null);
           onUploadError("Duplicate file");
+          console.error(`[Upload] Duplicate file: ${file.name}`);
         } else {
-          onUploadError(data?.error ?? "Upload failed");
-          setError(data?.error ?? "Upload failed");
+          const errMsg = data?.error ?? "Upload failed";
+          onUploadError(errMsg);
+          setError(errMsg);
+          console.error(`[Upload] Failed: ${file.name} — ${errMsg}`);
         }
       } else {
         setStatus("complete");

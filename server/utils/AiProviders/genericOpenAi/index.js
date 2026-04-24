@@ -231,7 +231,6 @@ class GenericOpenAiLLM {
           model: this.model,
           messages,
           temperature,
-          max_tokens: this.maxTokens,
         })
         .catch((e) => {
           throw new Error(e.message);
@@ -271,7 +270,6 @@ class GenericOpenAiLLM {
         stream: true,
         messages,
         temperature,
-        max_tokens: this.maxTokens,
         ...this.#includeStreamOptionsUsage(),
       }),
       messages,

@@ -150,6 +150,7 @@ function workspaceEndpoints(app) {
         const { success, reason, documents } =
           await Collector.processDocument(originalname);
         if (!success) {
+          console.error(`[Upload] Processing failed for ${originalname}: ${reason}`);
           response.status(500).json({ success: false, error: reason }).end();
           return;
         }
@@ -223,6 +224,7 @@ function workspaceEndpoints(app) {
 
         const { success, reason } = await Collector.processLink(link);
         if (!success) {
+          console.error(`[Upload] Link processing failed for ${link}: ${reason}`);
           response.status(500).json({ success: false, error: reason }).end();
           return;
         }

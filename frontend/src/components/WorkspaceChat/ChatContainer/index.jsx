@@ -34,6 +34,8 @@ import SuggestedMessages from "@/components/lib/SuggestedMessages";
 import TextSizeMenu from "./TextSizeMenu";
 import WorkspaceModelPicker from "./WorkspaceModelPicker";
 import SourcesSidebar, { SourcesSidebarProvider } from "./SourcesSidebar";
+import BottomPanel from "@/components/PromptLibraryV2/BottomPanel";
+import usePromptLibraryV2 from "@/hooks/usePromptLibraryV2";
 
 export default function ChatContainer({ workspace, knownHistory = [] }) {
   const navigate = useNavigate();
@@ -41,15 +43,24 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const { threadSlug = null } = useParams();
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [chatHistory, setChatHistory] = useState(knownHistory);
+  const chatHistoryLatest = useRef(knownHistory);
   const [socketId, setSocketId] = useState(null);
   const [websocket, setWebsocket] = useState(null);
   const { files, parseAttachments } = useContext(DndUploaderContext);
   const { chatHistoryRef } = useChatContainerQuickScroll();
   const pendingMessageChecked = useRef(false);
+  const [promptLibraryOpen, setPromptLibraryOpen] = useState(false);
+  const { libraries: promptLibraries } = usePromptLibraryV2(workspace);
 
   const { listening, resetTranscript } = useSpeechRecognition({
     clearTranscriptOnListen: true,
   });
+
+  const setChatHistoryWithRef = (value) => {
+    const next = typeof value === "function" ? value(chatHistoryLatest.current) : value;
+    chatHistoryLatest.current = next;
+    setChatHistory(next);
+  };
 
   /**
    * Emit an update to the state of the prompt input without directly
@@ -95,7 +106,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
       // Stop the mic if the send button is clicked
       endSTTSession();
     }
-    setChatHistory(prevChatHistory);
+    setChatHistoryWithRef(prevChatHistory);
     setMessageEmit("");
     setLoadingResponse(true);
   };
@@ -199,10 +210,20 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
       ];
     }
 
-    setChatHistory(prevChatHistory);
+    setChatHistoryWithRef(prevChatHistory);
     setMessageEmit("");
     setLoadingResponse(true);
   };
+
+  useEffect(() => {
+    function handlePromptLibraryGenerate(e) {
+      const prompt = e?.detail?.prompt;
+      if (!prompt) return;
+      sendCommand({ text: prompt, autoSubmit: false });
+    }
+    window.addEventListener("prompt-library-v2:generate", handlePromptLibraryGenerate);
+    return () => window.removeEventListener("prompt-library-v2:generate", handlePromptLibraryGenerate);
+  }, [sendCommand]);
 
   useEffect(() => {
     if (pendingMessageChecked.current || !workspace?.slug) return;
@@ -223,9 +244,10 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
 
   useEffect(() => {
     async function fetchReply() {
+      const currentHistory = chatHistoryLatest.current;
       const promptMessage =
-        chatHistory.length > 0 ? chatHistory[chatHistory.length - 1] : null;
-      const remHistory = chatHistory.length > 0 ? chatHistory.slice(0, -1) : [];
+        currentHistory.length > 0 ? currentHistory[currentHistory.length - 1] : null;
+      const remHistory = currentHistory.length > 0 ? currentHistory.slice(0, -1) : [];
       var _chatHistory = [...remHistory];
 
       // Override hook for new messages to now go to agents until the connection closes
@@ -258,7 +280,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
           handleChat(
             chatResult,
             setLoadingResponse,
-            setChatHistory,
+            setChatHistoryWithRef,
             remHistory,
             _chatHistory,
             setSocketId
@@ -268,7 +290,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
       return;
     }
     loadingResponse === true && fetchReply();
-  }, [loadingResponse, chatHistory, workspace]);
+  }, [loadingResponse, workspace]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // TODO: Simplify this WSS stuff
   useEffect(() => {
@@ -291,7 +313,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         socket.addEventListener("message", (event) => {
           setLoadingResponse(true);
           try {
-            handleSocketResponse(socket, event, setChatHistory);
+            handleSocketResponse(socket, event, setChatHistoryWithRef);
           } catch {
             console.error("Failed to parse data");
             setAgentSessionActive(false);
@@ -304,7 +326,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         socket.addEventListener("close", (_event) => {
           setAgentSessionActive(false);
           window.dispatchEvent(new CustomEvent(AGENT_SESSION_END));
-          setChatHistory((prev) => [
+          setChatHistoryWithRef((prev) => [
             ...prev.filter((msg) => !!msg.content),
             {
               uuid: v4(),
@@ -327,7 +349,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
         window.dispatchEvent(new CustomEvent(AGENT_SESSION_START));
         window.dispatchEvent(new CustomEvent(CLEAR_ATTACHMENTS_EVENT));
       } catch (e) {
-        setChatHistory((prev) => [
+        setChatHistoryWithRef((prev) => [
           ...prev.filter((msg) => !!msg.content),
           {
             uuid: v4(),
@@ -382,6 +404,8 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
                 sendCommand={sendCommand}
                 attachments={files}
                 centered={true}
+                workspaceSlug={workspace.slug}
+                onOpenPromptLibrary={() => setPromptLibraryOpen(true)}
               />
               <QuickActions
                 hasAvailableWorkspace={!!workspace}
@@ -403,6 +427,12 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
           </div>
         </DnDFileUploaderWrapper>
         <ChatTooltips />
+        {promptLibraryOpen && (
+          <BottomPanel
+            libraries={promptLibraries}
+            onClose={() => setPromptLibraryOpen(false)}
+          />
+        )}
       </div>
     );
   }
@@ -426,7 +456,7 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
                     history={chatHistory}
                     workspace={workspace}
                     sendCommand={sendCommand}
-                    updateHistory={setChatHistory}
+                    updateHistory={setChatHistoryWithRef}
                     regenerateAssistantMessage={regenerateAssistantMessage}
                     websocket={websocket}
                   />
@@ -438,11 +468,19 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
                   sendCommand={sendCommand}
                   attachments={files}
                   centered={false}
+                  workspaceSlug={workspace.slug}
+                  onOpenPromptLibrary={() => setPromptLibraryOpen(true)}
                 />
               </div>
             </div>
           </DnDFileUploaderWrapper>
           <ChatTooltips />
+          {promptLibraryOpen && (
+            <BottomPanel
+              libraries={promptLibraries}
+              onClose={() => setPromptLibraryOpen(false)}
+            />
+          )}
         </div>
         <SourcesSidebar />
       </div>

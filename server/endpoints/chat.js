@@ -29,7 +29,6 @@ function chatEndpoints(app) {
         const user = await userFromSession(request, response);
         const { message, attachments = [] } = reqBody(request);
         const workspace = response.locals.workspace;
-
         if (typeof message !== "string" || message.trim().length === 0) {
           response.status(400).json({
             id: uuidv4(),
