@@ -1,183 +1,133 @@
 /**
- * Prompt Library V2 — isolated model layer
- * Uses Prisma raw SQL ($queryRawUnsafe / $executeRawUnsafe) to avoid needing
- * a fresh prisma generate after adding new tables.
+ * Prompt Library V2 — model layer using Prisma ORM.
+ * Works with both SQLite and PostgreSQL.
  * Tables: prompt_libraries, prompt_library_questions, prompt_library_workspace_assignments
  */
 const prisma = require("../utils/prisma");
 
-// ─── PromptLibraryV2 ─────────────────────────────────────────────────────────
-
 const PromptLibraryV2 = {
-  /**
-   * Return all libraries, optionally filtered by enabled.
-   * Includes their questions ordered by orderIndex.
-   */
   async where(clause = {}) {
     try {
-      let whereClause = "1=1";
-      const args = [];
-      if (clause.enabled !== undefined) {
-        args.push(clause.enabled ? 1 : 0);
-        whereClause += ` AND l.enabled = ?`;
-      }
+      const where = {};
+      if (clause.enabled !== undefined) where.enabled = Boolean(clause.enabled);
 
-      const libs = await prisma.$queryRawUnsafe(
-        `SELECT * FROM prompt_libraries l WHERE ${whereClause} ORDER BY l.createdAt ASC`,
-        ...args
-      );
+      const libs = await prisma.prompt_libraries.findMany({
+        where,
+        orderBy: { createdAt: "asc" },
+        include: {
+          questions: { orderBy: { orderIndex: "asc" } },
+        },
+      });
 
-      for (const lib of libs) {
-        lib.questions = await _getQuestions(lib.id);
-        lib.enabled = Boolean(lib.enabled);
-      }
-      return libs;
+      return libs.map(_formatLib);
     } catch (e) {
       console.error("[PromptLibraryV2.where]", e.message);
       return [];
     }
   },
 
-  /**
-   * Return a single library by id (with questions).
-   */
   async get(clause = {}) {
     try {
-      let libs = [];
-
+      let lib = null;
       if (clause.id !== undefined) {
-        libs = await prisma.$queryRawUnsafe(
-          "SELECT * FROM prompt_libraries WHERE id = ? LIMIT 1",
-          Number(clause.id)
-        );
-      } else if (clause.name !== undefined) {
-        libs = await prisma.$queryRawUnsafe(
-          "SELECT * FROM prompt_libraries WHERE name = ? LIMIT 1",
-          String(clause.name)
-        );
+        lib = await prisma.prompt_libraries.findUnique({
+          where: { id: Number(clause.id) },
+          include: { questions: { orderBy: { orderIndex: "asc" } } },
+        });
       } else if (clause.uuid !== undefined) {
-        libs = await prisma.$queryRawUnsafe(
-          "SELECT * FROM prompt_libraries WHERE uuid = ? LIMIT 1",
-          String(clause.uuid)
-        );
+        lib = await prisma.prompt_libraries.findUnique({
+          where: { uuid: String(clause.uuid) },
+          include: { questions: { orderBy: { orderIndex: "asc" } } },
+        });
+      } else if (clause.name !== undefined) {
+        lib = await prisma.prompt_libraries.findFirst({
+          where: { name: String(clause.name) },
+          include: { questions: { orderBy: { orderIndex: "asc" } } },
+        });
       } else {
         return null;
       }
 
-      if (!libs || libs.length === 0) return null;
-      const lib = libs[0];
-      lib.questions = await _getQuestions(lib.id);
-      lib.enabled = Boolean(lib.enabled);
-      return lib;
+      return lib ? _formatLib(lib) : null;
     } catch (e) {
       console.error("[PromptLibraryV2.get]", e.message);
       return null;
     }
   },
 
-  /**
-   * Return all enabled libraries accessible by a workspace.
-   * "accessible" = has no workspace assignments (global) OR has an assignment for this workspace.
-   */
   async forWorkspace(workspaceId) {
     try {
-      const libs = await prisma.$queryRawUnsafe(
-        `SELECT l.* FROM prompt_libraries l
-         WHERE l.enabled = 1
-         AND (
-           NOT EXISTS (SELECT 1 FROM prompt_library_workspace_assignments a WHERE a.libraryId = l.id)
-           OR EXISTS (SELECT 1 FROM prompt_library_workspace_assignments a WHERE a.libraryId = l.id AND a.workspaceId = ?)
-         )
-         ORDER BY l.createdAt ASC`,
-        Number(workspaceId)
-      );
-      for (const lib of libs) {
-        lib.questions = await _getQuestions(lib.id);
-        lib.enabled = true;
-      }
-      return libs;
+      const libs = await prisma.prompt_libraries.findMany({
+        where: {
+          enabled: true,
+          OR: [
+            { workspaces: { none: {} } },
+            { workspaces: { some: { workspaceId: Number(workspaceId) } } },
+          ],
+        },
+        orderBy: { createdAt: "asc" },
+        include: { questions: { orderBy: { orderIndex: "asc" } } },
+      });
+
+      return libs.map(_formatLib);
     } catch (e) {
       console.error("[PromptLibraryV2.forWorkspace]", e.message);
       return [];
     }
   },
 
-  /**
-   * Create a library along with its questions.
-   */
   async create({ name, description = null, template, enabled = true, questions = [] }) {
     try {
-      const uuid = _uuid();
-      const now = new Date().toISOString();
-      await prisma.$executeRawUnsafe(
-        `INSERT INTO prompt_libraries (uuid, name, description, template, enabled, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        uuid, name, description, template, enabled ? 1 : 0, now, now
-      );
-      const rows = await prisma.$queryRawUnsafe(
-        "SELECT * FROM prompt_libraries WHERE uuid = ? LIMIT 1",
-        uuid
-      );
-      const lib = rows[0];
-      await _replaceQuestions(lib.id, questions);
-      lib.questions = await _getQuestions(lib.id);
-      lib.enabled = Boolean(lib.enabled);
-      return lib;
+      const lib = await prisma.prompt_libraries.create({
+        data: {
+          name,
+          description,
+          template,
+          enabled: Boolean(enabled),
+          questions: {
+            create: _questionsData(questions),
+          },
+        },
+        include: { questions: { orderBy: { orderIndex: "asc" } } },
+      });
+
+      return _formatLib(lib);
     } catch (e) {
       console.error("[PromptLibraryV2.create]", e.message);
       return null;
     }
   },
 
-  /**
-   * Update a library and optionally replace its questions.
-   */
   async update(id, { name, description, template, enabled, questions } = {}) {
     try {
-      const sets = [];
-      const args = [];
-      if (name !== undefined)        { sets.push("name = ?");        args.push(name); }
-      if (description !== undefined) { sets.push("description = ?"); args.push(description); }
-      if (template !== undefined)    { sets.push("template = ?");    args.push(template); }
-      if (enabled !== undefined)     { sets.push("enabled = ?");     args.push(enabled ? 1 : 0); }
-      sets.push("updatedAt = ?");
-      args.push(new Date().toISOString());
-      args.push(Number(id));
-
-      await prisma.$executeRawUnsafe(
-        `UPDATE prompt_libraries SET ${sets.join(", ")} WHERE id = ?`,
-        ...args
-      );
+      const data = {};
+      if (name !== undefined)        data.name = name;
+      if (description !== undefined) data.description = description;
+      if (template !== undefined)    data.template = template;
+      if (enabled !== undefined)     data.enabled = Boolean(enabled);
+      data.updatedAt = new Date();
 
       if (Array.isArray(questions)) {
-        await _replaceQuestions(Number(id), questions);
+        await prisma.prompt_library_questions.deleteMany({ where: { libraryId: Number(id) } });
+        data.questions = { create: _questionsData(questions) };
       }
 
-      return await PromptLibraryV2.get({ id });
+      const lib = await prisma.prompt_libraries.update({
+        where: { id: Number(id) },
+        data,
+        include: { questions: { orderBy: { orderIndex: "asc" } } },
+      });
+
+      return _formatLib(lib);
     } catch (e) {
       console.error("[PromptLibraryV2.update]", e.message);
       return null;
     }
   },
 
-  /**
-   * Delete a library (cascades via ON DELETE CASCADE to questions and assignments).
-   */
   async delete(id) {
     try {
-      // SQLite needs PRAGMA foreign_keys = ON for cascades; delete children manually to be safe
-      await prisma.$executeRawUnsafe(
-        "DELETE FROM prompt_library_questions WHERE libraryId = ?",
-        Number(id)
-      );
-      await prisma.$executeRawUnsafe(
-        "DELETE FROM prompt_library_workspace_assignments WHERE libraryId = ?",
-        Number(id)
-      );
-      await prisma.$executeRawUnsafe(
-        "DELETE FROM prompt_libraries WHERE id = ?",
-        Number(id)
-      );
+      await prisma.prompt_libraries.delete({ where: { id: Number(id) } });
       return true;
     } catch (e) {
       console.error("[PromptLibraryV2.delete]", e.message);
@@ -185,15 +135,13 @@ const PromptLibraryV2 = {
     }
   },
 
-  // ─── Workspace assignments ──────────────────────────────────────────────────
-
   async getAssignedWorkspaceIds(libraryId) {
     try {
-      const rows = await prisma.$queryRawUnsafe(
-        "SELECT workspaceId FROM prompt_library_workspace_assignments WHERE libraryId = ?",
-        Number(libraryId)
-      );
-      return rows.map((r) => Number(r.workspaceId));
+      const rows = await prisma.prompt_library_workspace_assignments.findMany({
+        where: { libraryId: Number(libraryId) },
+        select: { workspaceId: true },
+      });
+      return rows.map((r) => r.workspaceId);
     } catch (e) {
       console.error("[PromptLibraryV2.getAssignedWorkspaceIds]", e.message);
       return [];
@@ -202,17 +150,20 @@ const PromptLibraryV2 = {
 
   async setWorkspaceAssignments(libraryId, workspaceIds = []) {
     try {
-      await prisma.$executeRawUnsafe(
-        "DELETE FROM prompt_library_workspace_assignments WHERE libraryId = ?",
-        Number(libraryId)
-      );
-      for (const workspaceId of workspaceIds) {
-        await prisma.$executeRawUnsafe(
-          `INSERT OR IGNORE INTO prompt_library_workspace_assignments (libraryId, workspaceId, createdAt)
-           VALUES (?, ?, ?)`,
-          Number(libraryId), Number(workspaceId), new Date().toISOString()
-        );
+      await prisma.prompt_library_workspace_assignments.deleteMany({
+        where: { libraryId: Number(libraryId) },
+      });
+
+      if (workspaceIds.length > 0) {
+        await prisma.prompt_library_workspace_assignments.createMany({
+          data: workspaceIds.map((workspaceId) => ({
+            libraryId: Number(libraryId),
+            workspaceId: Number(workspaceId),
+          })),
+          skipDuplicates: true,
+        });
       }
+
       return true;
     } catch (e) {
       console.error("[PromptLibraryV2.setWorkspaceAssignments]", e.message);
@@ -221,48 +172,29 @@ const PromptLibraryV2 = {
   },
 };
 
-// ─── Private helpers ──────────────────────────────────────────────────────────
-
-async function _getQuestions(libraryId) {
-  const rows = await prisma.$queryRawUnsafe(
-    "SELECT * FROM prompt_library_questions WHERE libraryId = ? ORDER BY orderIndex ASC",
-    Number(libraryId)
-  );
-  return rows.map((q) => ({ ...q, required: Boolean(q.required) }));
+function _formatLib(lib) {
+  return {
+    ...lib,
+    enabled: Boolean(lib.enabled),
+    questions: (lib.questions ?? []).map((q) => ({
+      ...q,
+      required: Boolean(q.required),
+    })),
+  };
 }
 
-async function _replaceQuestions(libraryId, questions) {
-  await prisma.$executeRawUnsafe(
-    "DELETE FROM prompt_library_questions WHERE libraryId = ?",
-    Number(libraryId)
-  );
-  const now = new Date().toISOString();
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO prompt_library_questions
-         (libraryId, variable, label, type, placeholder, required, options, defaultValue, orderIndex, showIf, createdAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      Number(libraryId),
-      q.variable || "",
-      q.label || "",
-      q.type || "text",
-      q.placeholder || null,
-      q.required !== false ? 1 : 0,
-      q.options ? JSON.stringify(q.options) : null,
-      q.defaultValue || null,
-      q.orderIndex !== undefined ? Number(q.orderIndex) : i,
-      q.showIf ? JSON.stringify(q.showIf) : null,
-      now
-    );
-  }
-}
-
-function _uuid() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
+function _questionsData(questions) {
+  return questions.map((q, i) => ({
+    variable:     q.variable || "",
+    label:        q.label || "",
+    type:         q.type || "text",
+    placeholder:  q.placeholder || null,
+    required:     q.required !== false,
+    options:      q.options ? JSON.stringify(q.options) : null,
+    defaultValue: q.defaultValue || null,
+    orderIndex:   q.orderIndex !== undefined ? Number(q.orderIndex) : i,
+    showIf:       q.showIf ? JSON.stringify(q.showIf) : null,
+  }));
 }
 
 module.exports = { PromptLibraryV2 };

@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:../storage/anythingllm.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model api_keys {
@@ -436,13 +436,13 @@ model workspace_parsed_files {
 
 model file_upload_hashes {
   id           Int     @id @default(autoincrement())
-  hash         String  @unique(map: "sqlite_autoindex_file_upload_hashes_1")
+  hash         String  @unique
   filename     String
   workspace_id String?
   uploaded_by  Int?
   uploaded_at  String
 
-  @@index([hash], map: "idx_upload_hash")
+  @@index([hash])
 }
 
 model ai_consents {
